@@ -1,0 +1,778 @@
+{
+ "main_E": {
+  "ten_k": {
+   "precision": 0.5739,
+   "prec_lo": 0.508,
+   "prec_hi": 0.6364,
+   "recall": 0.0818,
+   "rec_lo": 0.0598,
+   "rec_hi": 0.1033,
+   "value_recall": 0.5433,
+   "fp_per_fraud": 0.155
+  },
+  "rev2_V1": {
+   "precision": 0.8893,
+   "prec_lo": 0.8649,
+   "prec_hi": 0.9101,
+   "recall": 0.2165,
+   "rec_lo": 0.1897,
+   "rec_hi": 0.2394,
+   "value_recall": 0.5775,
+   "fp_per_fraud": 0.0688
+  },
+  "rev2_V3": {
+   "precision": 0.889,
+   "prec_lo": 0.868,
+   "prec_hi": 0.9056,
+   "recall": 0.3962,
+   "rec_lo": 0.3646,
+   "rec_hi": 0.4266,
+   "value_recall": 0.7165,
+   "fp_per_fraud": 0.1263
+  },
+  "rev3_V1": {
+   "precision": 0.8545,
+   "prec_lo": 0.827,
+   "prec_hi": 0.8816,
+   "recall": 0.3565,
+   "rec_lo": 0.317,
+   "rec_hi": 0.3991,
+   "value_recall": 0.6308,
+   "fp_per_fraud": 0.155
+  },
+  "rev3_V3": {
+   "precision": 0.875,
+   "prec_lo": 0.8457,
+   "prec_hi": 0.8949,
+   "recall": 0.6136,
+   "rec_lo": 0.5774,
+   "rec_hi": 0.6525,
+   "value_recall": 0.8183,
+   "fp_per_fraud": 0.2238
+  },
+  "rev2_V3_G3": {
+   "precision": 0.9922,
+   "prec_lo": 0.9848,
+   "prec_hi": 0.9984,
+   "recall": 0.3115,
+   "rec_lo": 0.2818,
+   "rec_hi": 0.3404,
+   "value_recall": 0.3379,
+   "fp_per_fraud": 0.0063
+  },
+  "rev3_V3_G3": {
+   "precision": 0.9898,
+   "prec_lo": 0.9823,
+   "prec_hi": 0.9969,
+   "recall": 0.3315,
+   "rec_lo": 0.3031,
+   "rec_hi": 0.3583,
+   "value_recall": 0.3519,
+   "fp_per_fraud": 0.0088
+  }
+ },
+ "by_role_E": {
+  "own account (SELF)": {
+   "n": 652,
+   "ten_k": 0.1426,
+   "rev2": 0.5368,
+   "rev3": 0.5874
+  },
+  "own account, without T9": {
+   "n": 571,
+   "ten_k": 0.1611,
+   "rev2": 0.613,
+   "rev3": 0.6655
+  },
+  "mule": {
+   "n": 1313,
+   "ten_k": 0.0312,
+   "rev2": 0.3024,
+   "rev3": 0.6245
+  },
+  "mule, without T7": {
+   "n": 936,
+   "ten_k": 0.0288,
+   "rev2": 0.4113,
+   "rev3": 0.7468
+  },
+  "facilitator": {
+   "n": 77,
+   "ten_k": 0.4286,
+   "rev2": 0.8052,
+   "rev3": 0.6494
+  },
+  "all involved": {
+   "n": 2042,
+   "ten_k": 0.0818,
+   "rev2": 0.3962,
+   "rev3": 0.6136
+  },
+  "paid accomplice (secondary)": {
+   "n": 1619,
+   "ten_k": 0.008,
+   "rev2": 0.0142,
+   "rev3": 0.0142
+  }
+ },
+ "by_pattern_E": {
+  "T1": {
+   "ten_k": 0.4595,
+   "rev2": 0.6892,
+   "rev3": 0.5811
+  },
+  "T2": {
+   "ten_k": 0.3846,
+   "rev2": 0.6374,
+   "rev3": 0.6264
+  },
+  "T3": {
+   "ten_k": 0.0567,
+   "rev2": 0.5936,
+   "rev3": 0.6897
+  },
+  "T4": {
+   "ten_k": 0.0215,
+   "rev2": 0.4378,
+   "rev3": 0.8134
+  },
+  "T5": {
+   "ten_k": 0.0347,
+   "rev2": 0.39,
+   "rev3": 0.6931
+  },
+  "T7": {
+   "ten_k": 0.0371,
+   "rev2": 0.0318,
+   "rev3": 0.321
+  },
+  "T8": {
+   "ten_k": 0.4286,
+   "rev2": 0.8052,
+   "rev3": 0.6494
+  },
+  "T9": {
+   "ten_k": 0.0123,
+   "rev2": 0.0,
+   "rev3": 0.037
+  }
+ },
+ "sweep_speed": [
+  {
+   "window_h": 1.0,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.861,
+   "recall": 0.4012
+  },
+  {
+   "window_h": 1.0,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.8544,
+   "recall": 0.4192
+  },
+  {
+   "window_h": 1.0,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.867,
+   "recall": 0.7107
+  },
+  {
+   "window_h": 24.0,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8865,
+   "recall": 0.3892
+  },
+  {
+   "window_h": 24.0,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.8591,
+   "recall": 0.386
+  },
+  {
+   "window_h": 24.0,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8664,
+   "recall": 0.6044
+  },
+  {
+   "window_h": 72.0,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8686,
+   "recall": 0.3974
+  },
+  {
+   "window_h": 72.0,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.7863,
+   "recall": 0.299
+  },
+  {
+   "window_h": 72.0,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8165,
+   "recall": 0.476
+  },
+  {
+   "window_h": 168.0,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8785,
+   "recall": 0.3745
+  },
+  {
+   "window_h": 168.0,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.8148,
+   "recall": 0.2728
+  },
+  {
+   "window_h": 168.0,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8135,
+   "recall": 0.4108
+  }
+ ],
+ "sweep_k": [
+  {
+   "k": 2,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8008,
+   "recall": 0.4447
+  },
+  {
+   "k": 2,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.7007,
+   "recall": 0.4383
+  },
+  {
+   "k": 2,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.7056,
+   "recall": 0.3213
+  },
+  {
+   "k": 3,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8207,
+   "recall": 0.4036
+  },
+  {
+   "k": 3,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.7894,
+   "recall": 0.5321
+  },
+  {
+   "k": 3,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.7234,
+   "recall": 0.3049
+  },
+  {
+   "k": 5,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8282,
+   "recall": 0.4088
+  },
+  {
+   "k": 5,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8212,
+   "recall": 0.6132
+  },
+  {
+   "k": 5,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.7975,
+   "recall": 0.3751
+  },
+  {
+   "k": 10,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8733,
+   "recall": 0.3505
+  },
+  {
+   "k": 10,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8832,
+   "recall": 0.6272
+  },
+  {
+   "k": 10,
+   "detector": "Rev3 V1 G2+",
+   "precision": 0.8729,
+   "recall": 0.4021
+  }
+ ],
+ "main_D": {
+  "ten_k": {
+   "precision": 0.5289,
+   "recall": 0.0997,
+   "value_recall": 0.6035
+  },
+  "rev2_V3": {
+   "precision": 0.8562,
+   "recall": 0.3808,
+   "value_recall": 0.7371
+  },
+  "rev2_V3_G3": {
+   "precision": 0.9918,
+   "recall": 0.3004,
+   "value_recall": 0.3711
+  }
+ },
+ "rules": {
+  "rev2": {
+   "V1": {
+    "sigma": 0.2,
+    "kappa": 0.7,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05
+   },
+   "V2": {
+    "sigma": 0.2,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05
+   },
+   "V3": {
+    "sigma": 0.15,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05
+   },
+   "V4": {
+    "sigma": 0.15,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05
+   }
+  },
+  "rev3": {
+   "V1": {
+    "sigma": 0.3,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "fan_k": 1,
+    "fan_dt": 6,
+    "fan_ratio": 1.5
+   },
+   "V2": {
+    "sigma": 0.2,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "fan_k": 2,
+    "fan_dt": 24,
+    "fan_ratio": 2.0
+   },
+   "V3": {
+    "sigma": 0.2,
+    "kappa": 0.3,
+    "pi": 0.5,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "fan_k": 2,
+    "fan_dt": 6,
+    "fan_ratio": 2.0
+   },
+   "V4": {
+    "sigma": 0.2,
+    "kappa": 0.3,
+    "pi": 0.5,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "fan_k": 2,
+    "fan_dt": 6,
+    "fan_ratio": 2.0
+   }
+  }
+ },
+ "real": {
+  "seeds_listed": 9831,
+  "seeds_excluded_token_contracts": 18,
+  "hack_seeds": 217,
+  "phishing_active": 1770,
+  "phishing_sending": 1448,
+  "transfers_out": 32270,
+  "total_out_eur": 87229393.0,
+  "flows_share": {
+   "bridge": 0.0071,
+   "dex": 0.0755,
+   "exchange": 0.0073,
+   "mixer": 0.13,
+   "other": 0.0029,
+   "seed": 0.0203,
+   "unknown": 0.7569
+  },
+  "hop1_roles": {
+   "deposit": {
+    "n": 454,
+    "eur": 3678091.0
+   },
+   "collector": {
+    "n": 4804,
+    "eur": 51731286.0
+   },
+   "busy": {
+    "n": 92,
+    "eur": 9298749.0
+   },
+   "holder": {
+    "n": 417,
+    "eur": 553098.0
+   }
+  },
+  "deposit_addresses": 1011,
+  "by_exchange": {
+   "binance": 512,
+   "coinbase": 176,
+   "kucoin": 106,
+   "okx": 81,
+   "changenow": 29,
+   "ftx": 21,
+   "crypto-com": 18,
+   "remitano": 16
+  },
+  "fraud_eur_to_deposits": 8204825.0,
+  "grades": {
+   "G0": {
+    "n": 471,
+    "X_median": 230.0,
+    "X_total": 354321.0,
+    "kappa_median": 0.446
+   },
+   "G1": {
+    "n": 420,
+    "X_median": 1068.0,
+    "X_total": 4882323.0,
+    "kappa_median": 0.308
+   },
+   "G2": {
+    "n": 103,
+    "X_median": 3498.0,
+    "X_total": 2799487.0,
+    "kappa_median": 0.999
+   },
+   "G3": {
+    "n": 17,
+    "X_median": 6417.0,
+    "X_total": 168694.0,
+    "kappa_median": 0.877
+   }
+  },
+  "rule10k": 83,
+  "overlap": {
+   "both": 41,
+   "grades_only": 79,
+   "ten_k_only": 42
+  },
+  "check_90d": {
+   "all": {
+    "accounts": 690,
+    "same": 0.0902,
+    "new": 0.0598,
+    "either": 0.1349,
+    "lo": 0.1126,
+    "hi": 0.1588
+   },
+   "grade 0": {
+    "accounts": 335,
+    "same": 0.066,
+    "new": 0.0554,
+    "either": 0.1182,
+    "lo": 0.0895,
+    "hi": 0.1477
+   },
+   "G1": {
+    "accounts": 376,
+    "same": 0.1109,
+    "new": 0.0636,
+    "either": 0.1491,
+    "lo": 0.1176,
+    "hi": 0.1819
+   },
+   "G2": {
+    "accounts": 85,
+    "same": 0.1523,
+    "new": 0.0535,
+    "either": 0.1728,
+    "lo": 0.1038,
+    "hi": 0.2423
+   },
+   "G3": {
+    "accounts": 10,
+    "same": 0.3462,
+    "new": 0.2692,
+    "either": 0.3846,
+    "lo": 0.1163,
+    "hi": 0.7309
+   },
+   "10k rule": {
+    "accounts": 62,
+    "same": 0.151,
+    "new": 0.0,
+    "either": 0.151,
+    "lo": 0.0755,
+    "hi": 0.2407
+   },
+   "G2 not 10k": {
+    "accounts": 57,
+    "same": 0.1566,
+    "new": 0.0783,
+    "either": 0.1867,
+    "lo": 0.1053,
+    "hi": 0.2761
+   }
+  },
+  "g3_examples": [
+   {
+    "address": "0x3d71bb0fa6bfc82787da3ccbf09567def8bb8716",
+    "exchange": "binance",
+    "X": 41615.0,
+    "seeds": 6,
+    "kappa": 0.88
+   },
+   {
+    "address": "0x8e2286e827a4e0ae43cfe694bf1fe63d5aceeaa3",
+    "exchange": "binance",
+    "X": 24391.0,
+    "seeds": 3,
+    "kappa": 0.58
+   },
+   {
+    "address": "0x0ae5fdd22919c09fac03421b60739c4b60c888e4",
+    "exchange": "binance",
+    "X": 15995.0,
+    "seeds": 6,
+    "kappa": 0.85
+   },
+   {
+    "address": "0x2e725f1a5b0d3da57b262759846d371815d2adb6",
+    "exchange": "binance",
+    "X": 15293.0,
+    "seeds": 4,
+    "kappa": 0.97
+   },
+   {
+    "address": "0x47b3d8b3b32957eedc9282194ab9e748951f90e2",
+    "exchange": "kucoin",
+    "X": 14342.0,
+    "seeds": 2,
+    "kappa": 0.88
+   },
+   {
+    "address": "0x7d5d469612bf0e533db389b9ac20d0a30a6031a3",
+    "exchange": "okx",
+    "X": 12577.0,
+    "seeds": 4,
+    "kappa": 0.8
+   },
+   {
+    "address": "0x0f7bfb7d3383df29788df29d3589433bdca547ed",
+    "exchange": "ftx",
+    "X": 10192.0,
+    "seeds": 2,
+    "kappa": 0.53
+   },
+   {
+    "address": "0x165a263e7cfccdfb61b5e8223a9da9a1d159a288",
+    "exchange": "binance",
+    "X": 6737.0,
+    "seeds": 3,
+    "kappa": 0.54
+   },
+   {
+    "address": "0x39ae934ab392482f8faa576fe7e0b56c57efbbf7",
+    "exchange": "binance",
+    "X": 6417.0,
+    "seeds": 7,
+    "kappa": 1.0
+   },
+   {
+    "address": "0xce596dc060cff053022d0a23279dfd0ed26757b5",
+    "exchange": "binance",
+    "X": 5812.0,
+    "seeds": 2,
+    "kappa": 0.79
+   },
+   {
+    "address": "0xdc585ec0fc2b79f4fe43f2e128bf99cbbf367b25",
+    "exchange": "binance",
+    "X": 5320.0,
+    "seeds": 3,
+    "kappa": 0.84
+   },
+   {
+    "address": "0x48b771fc70204ebf72ccc7811aea648c3fc67b9c",
+    "exchange": "binance",
+    "X": 4413.0,
+    "seeds": 3,
+    "kappa": 0.51
+   },
+   {
+    "address": "0xb85fac51ade617fd09733abd67cb5ae9c448b055",
+    "exchange": "binance",
+    "X": 1816.0,
+    "seeds": 4,
+    "kappa": 0.91
+   },
+   {
+    "address": "0x23f5f4b638546209d08febab9decf954bfdf1054",
+    "exchange": "binance",
+    "X": 1088.0,
+    "seeds": 3,
+    "kappa": 1.0
+   },
+   {
+    "address": "0x32e4febaa26959d87f269076e00d8053196b6980",
+    "exchange": "binance",
+    "X": 1084.0,
+    "seeds": 2,
+    "kappa": 1.0
+   },
+   {
+    "address": "0xfe0f0e9e3fa5ddac309a3b6082cc5dee6af49875",
+    "exchange": "binance",
+    "X": 951.0,
+    "seeds": 2,
+    "kappa": 1.0
+   },
+   {
+    "address": "0xb0cb31065d2e59847377e5b690bb662905ded4cb",
+    "exchange": "binance",
+    "X": 649.0,
+    "seeds": 2,
+    "kappa": 0.94
+   }
+  ],
+  "fanout": {
+   "seeds_multi": 198,
+   "seeds_total": 422,
+   "median_gap_h": 593.0,
+   "median_ratio": 3.57,
+   "pairs_6h_x2": 0.0131,
+   "seeds_route_fires": 6
+  }
+ }
+}
