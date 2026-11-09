@@ -21,7 +21,7 @@ STATE = {}
 # what a visitor may change when creating a world (everything else keeps the thesis test settings)
 WORLD_KEYS = {
     "n_seeds": int, "k_min": int, "k_max": int, "split_spread": float, "mule_window_h": float,
-    "cex_share": float, "p_collector": float, "p_framing": float, "p_p2p": float, "p_landlord": float,
+    "cex_share": float, "p_collector": float, "p_cluster_miss": float, "p_framing": float, "p_p2p": float, "p_landlord": float,
     "typologies": list,
 }
 
@@ -42,8 +42,10 @@ def new_world(params="{}"):
         kw["split_random"] = False
         kw["send_window_scale"] = float(p.get("mule_window_h", 24.0)) / 24.0
         kw["split_spread"] = float(p.get("split_spread", 0.2))
-    for k in ("cex_share", "p_collector", "p_framing", "p_p2p", "p_landlord"):
+    for k in ("cex_share", "p_collector", "p_cluster_miss", "p_framing", "p_p2p", "p_landlord"):
         if k in p: kw[k] = float(p[k])
+    if "p_collector" in p:
+        kw["p_collector_range"] = None          # a fixed value chosen by the visitor replaces the per-world draw
     if p.get("typologies"): kw["typologies"] = tuple(p["typologies"])
     cfg = TEST3_CFG.with_(**kw)
     w = generate_world(cfg, np.random.default_rng(seed))
@@ -56,12 +58,15 @@ def new_world(params="{}"):
         d = df[df.seed == s]
         frauds.append(dict(id=int(s), pattern=v["typology"], F=_f(v["F"], 0), k=int(v["k"]),
                            collector=bool(v.get("collector", False)),
+                           collector_traced=bool(v.get("intermediary_detected", True)),
                            involved=int(d.role.isin(POSITIVE_ROLES).sum()), accounts=int((d.X >= 100).sum())))
     return json.dumps(dict(seed=seed, frauds=frauds, n_accounts=len(w.accounts), n_rows=len(df),
                            roles={k: int(v) for k, v in roles.items()},
                            settings=dict(n_seeds=cfg.n_seeds, k_range=list(cfg.k_range), split_random=cfg.split_random,
                                          split_spread=cfg.split_spread, mule_window_h=24 * cfg.send_window_scale,
-                                         cex_share=cfg.cex_share, p_collector=cfg.p_collector,
+                                         cex_share=cfg.cex_share, p_collector=_f(w.p_collector, 3),
+                                         p_collector_range=list(cfg.p_collector_range) if cfg.p_collector_range else None,
+                                         p_cluster_miss=cfg.p_cluster_miss,
                                          typologies=list(cfg.typologies))))
 
 
@@ -161,7 +166,8 @@ def fraud_graph(fraud_id):
     if sd.get("collector", False):
         nodes.append(dict(id="collector", kind="collector", found=bool(sd.get("intermediary_detected", True))))
         links.append(dict(source="seed", target="collector"))
-        src = "collector"
+        # past a collector the trace did not get through nothing is seen; the accounts shown got money from the seed
+        src = "collector" if sd.get("intermediary_detected", True) else "seed"
     groups = {}
     for i in big.index:
         row = df.loc[i]
