@@ -9,7 +9,9 @@ REAL = dict(
     p_new_mule_account=0.25,
     refund_model="blte", p_inducement=0.17,
     cex_share=0.30,
-    p_collector=0.67,
+    p_collector=0.67,           # pilot value, used only when p_collector_range is None
+    p_collector_range=(0.267, 0.712),   # BigQuery: share of phishing seeds sending >= 99% .. >= 50% to one address
+    p_cluster_miss=0.089,   # measured on our BigQuery data: 26 of 293 phishing seeds, 95% CI 5.8-12.3% (experiments6.py)
 )
 CAL_CFG = Config(**REAL).with_(p_landlord=0.2)                      # calibration worlds (patterns T1-T5)
 TEST_CFG = Config(**REAL, typologies=("T1", "T2", "T3", "T4", "T5", "T7", "T8", "T9"),
