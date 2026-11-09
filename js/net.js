@@ -31,7 +31,8 @@ const NET = (() => {
     const nodes = g.nodes, byId = Object.fromEntries(nodes.map(n => [n.id, n]));
     const accts = nodes.filter(n => n.kind === 'account');
     const seed = byId.seed; seed.x = 62; seed.y = 215;
-    const coll = byId.collector; if (coll) { coll.x = 168; coll.y = 215; }
+    // an untraced collector sits below, off the links: the accounts shown got their money from the address itself
+    const coll = byId.collector; if (coll) { coll.x = 168; coll.y = coll.found === false ? 300 : 215; }
     const small = byId.small; if (small) { small.x = 62; small.y = 400; }
     // exchanges present, in alphabetical order
     const exs = [...new Set(accts.map(a => a.exchange))].sort();
@@ -80,8 +81,14 @@ const NET = (() => {
     el('path', { d: `M${seed.x - 9},${seed.y - 9} L${seed.x + 9},${seed.y + 9} M${seed.x + 9},${seed.y - 9} L${seed.x - 9},${seed.y + 9}`, stroke: '#fff', 'stroke-width': 3.5 }, gS);
     const ts = el('text', { x: 10, y: seed.y - 32, class: 'lbl', style: lblFont, 'text-anchor': 'start' }, gS); ts.textContent = o.t('legend_seed');
     if (coll) {
-      el('rect', { x: coll.x - 16, y: coll.y - 16, width: 32, height: 32, fill: '#5c5c5c' }, gS);
+      // a collector not recognised as the fraudster's own wallet: drawn as a dashed outline, the trace stops there
+      const traced = coll.found !== false;
+      el('rect', traced ? { x: coll.x - 16, y: coll.y - 16, width: 32, height: 32, fill: '#5c5c5c' }
+        : { x: coll.x - 16, y: coll.y - 16, width: 32, height: 32, fill: '#fff', stroke: '#111', 'stroke-width': 2.5, 'stroke-dasharray': '5 4' }, gS);
       const tc = el('text', { x: coll.x, y: coll.y + 36, class: 'lbl', style: lblFont, 'text-anchor': 'middle' }, gS); tc.textContent = o.t('legend_coll');
+      if (!traced) {
+        const tn = el('text', { x: coll.x, y: coll.y + 36 + 15 * k, class: 'lbl', style: lblFont + ';fill:#b3261e', 'text-anchor': 'middle' }, gS); tn.textContent = o.t('coll_not_traced');
+      }
     }
     if (small) {
       el('rect', { x: small.x - 46, y: small.y - 20, width: 92, height: 40, fill: '#f6f6f3', stroke: '#d4d4cf' }, gS);
@@ -153,6 +160,7 @@ const NET = (() => {
       h += `<span><i style="border:2px solid #111;background:none"></i>${o.t('involved_missed')}</span>`;
     }
     h += `<span><i style="border-top:2px dashed #2a5db0;background:none;border-radius:0;height:0;width:18px"></i>${o.t('same_person')}</span>`;
+    if (g.nodes.some(n => n.id === 'collector' && n.found === false)) h += `<span><i style="border:2px dashed #111;background:#fff;border-radius:0"></i>${o.t('coll_untraced_legend')}</span>`;
     box.innerHTML = h;
   }
 

@@ -189,7 +189,7 @@ const APP = (() => {
     const seed = S.graph.nodes.find(n => n.id === 'seed');
     return `${t('fraud_pick')} ${f.id} · ${patName(f.pattern)} · ${eur(f.F)} · ` + t('fraud_involved', { i: f.involved, n: f.accounts }) +
       (seed ? ' · ' + t('fraud_day', { d: Math.round(seed.blacklisted_h / 24) }) : '') +
-      (f.collector ? ` · ${t('legend_coll')}` : '');
+      (f.collector ? ` · ${f.collector_traced === false || S.graph.nodes.some(n => n.id === 'collector' && n.found === false) ? t('coll_untraced') : t('legend_coll')}` : '');
   }
   function renderSim() {
     if (!S.res || !S.graph) return;

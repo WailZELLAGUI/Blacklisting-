@@ -220,7 +220,7 @@ Stationery colours on a neutral desk: ink, bond and grey do the work; exhibit co
 
 ### Secondary
 - **Exhibit Yellow** (exhibit-yellow): Exhibit B's tab. Shares its value with the G1 grade.
-- **Highlighter Yellow** (highlighter): marker strokes behind key figures (8 %, 61 %), the "try this" instruction, and text selection.
+- **Highlighter Yellow** (highlighter): marker strokes behind key figures (10 %, 62 %), the "try this" instruction, and text selection.
 - **Ledger Green** (exhibit-green): Exhibit C's tab; also the **ok** state (passed-rule ticks, engine ready).
 
 ### Tertiary (data encodings)
