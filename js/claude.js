@@ -36,7 +36,9 @@
   async function runTool(name, input) {
     const S = APP.state();
     if (name === 'create_world') {
-      if (S.engine !== 'ready') return { error: 'Python is not ready in this browser; new worlds are not available.' };
+      APP.ensureEngine();
+      for (let i = 0; i < 240 && APP.state().engine === 'loading'; i++) await new Promise(r => setTimeout(r, 500));
+      if (APP.state().engine !== 'ready') return { error: 'Python is not ready in this browser; new worlds are not available.' };
       const p = {};
       if (input.n_frauds) p.n_seeds = input.n_frauds;
       if (input.mules_min) p.k_min = input.mules_min; if (input.mules_max) p.k_max = input.mules_max;
@@ -122,11 +124,16 @@ Current state: world seed ${S.world.seed}, ${S.world.frauds.length} frauds; rule
   document.addEventListener('DOMContentLoaded', () => {
     $('#ask-key').value = key;
     try { $('#ask-remember').checked = !!localStorage.getItem('f1-anthropic-key'); } catch (e) {}
-    $('#ask-open').addEventListener('click', () => { $('#ask').hidden = !$('#ask').hidden; });
-    $('#ask-close').addEventListener('click', () => { $('#ask').hidden = true; });
+    const open = () => { $('#ask').hidden = false; $('#ask-open').setAttribute('aria-expanded', 'true'); (key ? $('#ask-in') : $('#ask-key')).focus(); };
+    const close = () => { $('#ask').hidden = true; $('#ask-open').setAttribute('aria-expanded', 'false'); $('#ask-open').focus(); };
+    $('#ask-open').addEventListener('click', () => { $('#ask').hidden ? open() : close(); });
+    $('#ask-close').addEventListener('click', close);
+    $('#ask').addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
     $('#ask-key').addEventListener('input', e => { key = e.target.value.trim(); if ($('#ask-remember').checked) { try { localStorage.setItem('f1-anthropic-key', key); } catch (x) {} } });
     $('#ask-remember').addEventListener('change', e => { try { e.target.checked ? localStorage.setItem('f1-anthropic-key', key) : localStorage.removeItem('f1-anthropic-key'); } catch (x) {} });
-    $('#ask-form').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) { $('#ask-in').value = ''; ask(q); } });
+    $('#ask-form').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (!q) return;
+      if (!key) { log('t', APP.t('ask_need_key')); $('#ask-key').focus(); return; } // keep the question until a key is entered
+      $('#ask-in').value = ''; ask(q); });
     $('#ask-in').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#ask-form').requestSubmit(); } });
   });
 })();
