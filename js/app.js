@@ -333,7 +333,25 @@ const APP = (() => {
     cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', cap ? cap.textContent : id);
     cfg.options = cfg.options || {}; cfg.options.animation = reduceMotion() ? false : { duration: 500 };
     cfg.options.maintainAspectRatio = true; cfg.options.aspectRatio = cfg.aspect || (window.innerWidth < 600 ? 1.1 : 1.6);
-    S.charts[id] = new Chart(cv, cfg); srTable(cv, cfg);
+    // on narrow screens, long category labels of horizontal bar charts wrap onto several lines instead of being cut off
+    const labels = cfg.data.labels;
+    if (cfg.options.indexAxis === 'y') {
+      // every category keeps its label (no auto-skip), and the value axis stays horizontal
+      const sc = cfg.options.scales = cfg.options.scales || {};
+      sc.y = { ...(sc.y || {}), ticks: { ...((sc.y || {}).ticks || {}), autoSkip: false } };
+      sc.x = { ...(sc.x || {}), ticks: { ...((sc.x || {}).ticks || {}), maxRotation: 0 } };
+      if (window.innerWidth < 600) {
+        cfg.data = { ...cfg.data, labels: labels.map(l => wrapLabel(String(l), 16)) };
+        if (!cfg.aspect) cfg.options.aspectRatio = labels.length > 5 ? 0.75 : 1;
+      }
+    }
+    S.charts[id] = new Chart(cv, cfg); srTable(cv, { ...cfg, data: { ...cfg.data, labels } });
+  }
+  function wrapLabel(s, max) {
+    const lines = []; let line = '';
+    for (const w of s.split(' ')) { if (line && (line + ' ' + w).length > max) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; }
+    if (line) lines.push(line);
+    return lines.length > 1 ? lines : s;
   }
   const pctAxis = { min: 0, max: 100, ticks: { callback: v => v + ' %' }, grid: { color: '#ecece8' } };
   function renderResults() {
@@ -390,7 +408,7 @@ const APP = (() => {
     $('#real-roles').innerHTML = `<table class="t"><caption>${t('tbl')} C-2 · ${esc(t('real_roles_h'))}</caption><thead><tr><th></th><th scope="col" class="n">${t('col_n')}</th><th scope="col" class="n">${t('col_eur')}</th></tr></thead><tbody>` +
       Object.entries(r.hop1_roles).map(([k, v]) => `<tr><th scope="row" style="font-weight:500">${esc(t('hop')[k])}</th><td class="n">${num(v.n)}</td><td class="n">${meur(v.eur)}</td></tr>`).join('') + '</tbody></table>';
     const ek = Object.keys(r.by_exchange);
-    chart('ch-ex', { type: 'bar', fmt: v => num(v), data: { labels: ek, datasets: [{ label: t('col_accounts'), data: ek.map(k => r.by_exchange[k]), backgroundColor: C.r2 }] }, options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } } });
+    chart('ch-ex', { type: 'bar', fmt: v => num(v), data: { labels: ek, datasets: [{ label: t('col_accounts'), data: ek.map(k => r.by_exchange[k]), backgroundColor: C.r2 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { y: { grid: { display: false } }, x: { grid: { color: '#ecece8' } } } } });
     $('#real-grades').innerHTML = `<table class="t"><caption>${t('tbl')} C-3 · ${esc(t('real_grades_h'))}</caption><thead><tr><th></th><th scope="col" class="n">${t('col_accounts')}</th><th scope="col" class="n">${t('col_med')}</th><th scope="col" class="n">${t('col_tot')}</th><th scope="col" class="n">${t('col_kappa')}</th></tr></thead><tbody>` +
       Object.entries(r.grades).map(([g, v]) => `<tr><th scope="row"><span class="chip c${g[1]}">${g}</span></th><td class="n">${v.n}</td><td class="n">${eur(v.X_median)}</td><td class="n">${meur(v.X_total)}</td><td class="n">${pct(v.kappa_median, 0)}</td></tr>`).join('') +
       `<tr><th scope="row" style="font-weight:500">${t('preset_10k')}</th><td class="n">${r.rule10k}</td><td colspan="3" class="note">${S.lang === 'fr'
