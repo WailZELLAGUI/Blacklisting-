@@ -36,9 +36,16 @@ onmessage = async (ev) => {
   if (!ok) { postMessage({ id, ok: false, error: 'Python is not available' }); return; }
   if (!ALLOWED.has(fn)) { postMessage({ id, ok: false, error: 'unknown function ' + fn }); return; }
   try {
-    py.globals.set('ARG', arg === undefined ? null : arg);
+    // Pyodide 0.28+ turns JS null into a JsNull object, not Python None, so a missing
+    // argument must not be passed through at all: call the function with no argument.
     const t0 = performance.now();
-    const res = py.runPython(`webapi.${fn}(ARG) if ARG is not None else webapi.${fn}()`);
+    let res;
+    if (arg === undefined || arg === null) {
+      res = py.runPython(`webapi.${fn}()`);
+    } else {
+      py.globals.set('ARG', arg);
+      res = py.runPython(`webapi.${fn}(ARG)`);
+    }
     postMessage({ id, ok: true, result: res, ms: performance.now() - t0 });
   } catch (e) {
     postMessage({ id, ok: false, error: String(e && e.message || e).slice(-800) });
