@@ -46,7 +46,8 @@ class Config:
     p_doc: float = 0.2                    # extra registration uses another document
     p_second_key_match: float = 0.95      # name+birth-date key matches
     # tracing
-    p_cluster_miss: float = 0.3           # T6: intermediary not clustered
+    p_cluster_miss: float = 0.3           # trace stops at the collector; 0.3 = pilot value kept so old results reproduce,
+                                          # measured value 0.089 (BigQuery) is set in webapp/configs.py and experiments6.py
     # noise roles
     p_inducement: float = 0.3
     p_ponzi: float = 0.15
@@ -83,6 +84,7 @@ class Config:
     refund_model: str = "pilot"           # "blte": number and size of victim refunds from real data
     cex_share: float = 1.0                # share of handler money that reaches participating exchanges
     p_collector: float = 0.0              # seed first sends to a collector wallet
+    p_collector_range: Optional[Tuple[float, float]] = None   # if set, each world draws its own p_collector, U(lo, hi)
     drip_amount: tuple = (400.0, 400.0)   # T9: monthly payment to the fraudster's own busy account
     drip_months: tuple = (3, 6)
     p_salary: float = 0.0                 # seed pays monthly salaries to 1-3 accomplices
@@ -122,6 +124,7 @@ class World:
     popular: list = field(default_factory=list)     # (label, is_labelled)
     plus2: list = field(default_factory=list)       # onward payments from own accounts (+2)
     self_accounts: dict = field(default_factory=dict)  # seed -> list of own-account ids
+    p_collector: float = 0.0                           # value used in this world (drawn if cfg.p_collector_range)
     _order: int = 0
 
     # ------------------------------------------------------------ helpers
@@ -397,6 +400,11 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
 def generate_world(cfg: Config, rng: np.random.Generator) -> World:
     w = World(cfg)
     H = cfg.horizon_days * DAY
+    w.p_collector = cfg.p_collector
+    if cfg.p_collector_range:
+        # child generator: the main random stream is unchanged, so worlds differ only in this value
+        ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+        w.p_collector = float(np.random.default_rng(ss.spawn(1)[0]).uniform(*cfg.p_collector_range))
     w.popular = [(f"pop{i}", rng.random() < cfg.p_popular_labelled) for i in range(cfg.n_popular_dest)]
     for ex in range(cfg.n_exchanges):
         for _ in range(cfg.n_services_per_exchange):
@@ -428,7 +436,7 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         if cfg.cex_share < 1.0 and typ != "T9":
             w.seeds[s]["out"] += budget * (1.0 - cfg.cex_share)   # leaves through routes outside our exchanges
             budget *= cfg.cex_share
-        collector = cfg.p_collector > 0 and rng.random() < cfg.p_collector
+        collector = w.p_collector > 0 and rng.random() < w.p_collector
         w.seeds[s]["collector"] = bool(collector)
         if cfg.split_random:
             w.seeds[s]["split_spread"] = float(rng.uniform(*cfg.split_spread_range))
