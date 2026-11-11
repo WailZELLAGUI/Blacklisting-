@@ -4,211 +4,311 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fraudster +1 · following stolen crypto into exchange accounts</title>
-<meta name="description" content="A thesis report with exhibits: finding the accounts involved in a crypto fraud, from a blacklisted address to exchange accounts.">
+<meta name="description" content="A thesis website: following stolen crypto into exchange accounts and grading every receiving account, with a live fraud network simulator.">
+<script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hedvig+Letters+Serif:opsz@12..24&family=Geist:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
 
-<header class="masthead">
-  <a class="mark" href="#story"><b data-i18n="title">Fraudster +1</b><span data-i18n="mark_sub"></span></a>
-  <button id="ask-open" class="askbtn" aria-expanded="false" aria-controls="ask" data-i18n="ask">Ask Claude</button>
-  <div class="lang" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="fr" aria-pressed="false">FR</button></div>
-</header>
+<div class="navwrap container">
+  <header class="pill">
+    <a class="mark" href="#story" aria-label="Fraudster +1, home" data-i18n="title">Fraudster +1</a>
+    <nav class="views" id="nav" aria-label="Views">
+      <a href="#story" data-i18n="nav_story">The idea</a>
+      <a href="#simulator" data-i18n="nav_sim">Simulator</a>
+      <a href="#results" data-i18n="nav_results">Results</a>
+      <a href="#real-data" data-i18n="nav_real">Real data</a>
+      <a href="#data" data-i18n="nav_data">Data explained</a>
+      <a href="#sources" data-i18n="nav_about">Sources</a>
+    </nav>
+    <div class="tools">
+      <button id="ask-open" class="askbtn" type="button" aria-expanded="false" aria-controls="ask" data-i18n="ask">Ask Claude</button>
+      <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="fr" aria-pressed="false">FR</button></div>
+    </div>
+  </header>
+</div>
 
-<div class="binder">
-<main id="main" class="sheet" tabindex="-1">
+<main id="main" tabindex="-1">
 
-<!-- ======================================================= REPORT -->
-<section id="story" class="page" aria-labelledby="h-story">
-  <div class="caption"><span data-i18n="rep_caption"></span><span>FP1-R</span></div>
-  <h1 class="title" id="h-story" data-i18n="rep_title"></h1>
-  <p class="sub" data-i18n="rep_sub"></p>
-  <a class="sticker" href="#simulator" id="demo"><span class="sk" data-i18n="exhibit_word"></span><b>A</b><small data-i18n="sticker_t"></small></a>
-
-  <div class="para key"><span class="pn">¶ 1</span><p id="p1"></p></div>
-  <div class="para"><span class="pn">¶ 2</span><p data-i18n="s1_p"></p></div>
-  <div class="para"><span class="pn">¶ 3</span><p data-i18n="s2_p"></p></div>
-  <div class="para"><span class="pn">¶ 4</span><p><span data-i18n="s3_p"></span> <span data-i18n="s4_p"></span> <a class="cite" href="#simulator" id="cite-a" data-i18n="cite_a"></a></p></div>
-
-  <h2 class="sec" data-i18n="grades_h"></h2>
-  <div class="para"><span class="pn">¶ 5</span><p data-i18n="grades_p"></p></div>
-  <ul class="grades">
-    <li><span class="chip c0">G0</span><span data-i18n="g0_d"></span></li>
-    <li><span class="chip c1">G1</span><span data-i18n="g1_d"></span></li>
-    <li><span class="chip c2">G2</span><span data-i18n="g2_d"></span></li>
-    <li><span class="chip c3">G3</span><span data-i18n="g3_d"></span></li>
-  </ul>
-
-  <h2 class="sec" data-i18n="key_h"></h2>
-  <div class="para"><span class="pn">¶ 6</span><p data-i18n="key_p"></p></div>
-  <div class="tablewrap read" id="kpis"></div>
-  <div class="para"><span class="pn">¶ 7</span><p><span id="key-real"></span> <a class="cite" href="#real-data" data-i18n="cite_c"></a></p></div>
-  <p><a class="btn" href="#simulator" data-i18n="open_sim">Open the simulator</a></p>
-
-  <div class="limits"><h2 data-i18n="honest_h"></h2><p data-i18n="honest_p"></p></div>
-</section>
-
-<!-- ======================================================= EXHIBIT A: SIMULATOR -->
-<section id="simulator" class="page" aria-labelledby="h-sim">
-  <div class="caption"><span data-i18n="exhibit_a"></span><span>FP1-A</span></div>
-  <h1 class="xtitle" id="h-sim"><span data-i18n="sim_h"></span></h1>
-  <div id="engine" class="engine" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="engine-msg" data-i18n="engine_idle"></span></div>
-  <p><span class="try" data-i18n="try_h"></span></p>
-
-  <div class="rulebar">
-    <span class="lbl" id="lbl-rule" data-i18n="rule_h"></span>
-    <div class="seg" id="presets" role="group" aria-labelledby="lbl-rule"><button data-preset="10k" data-i18n="preset_10k"></button><button data-preset="rev2" data-i18n="preset_rev2"></button><button data-preset="rev3" data-i18n="preset_rev3"></button></div>
-    <div class="seg" id="vis" role="group" aria-label="Visibility"><button data-vis="V1" data-i18n="vis_v1"></button><button data-vis="V3" data-i18n="vis_v3"></button></div>
-  </div>
-  <p class="note visnote" data-i18n="vis_note"></p>
-
-  <div class="strip tablewrap" id="strip" aria-live="polite"></div>
-
-  <div class="simgrid">
-    <div class="netpanel">
-      <div class="netbar">
-        <label class="field"><span data-i18n="fraud_pick"></span><select id="sel-fraud"></select></label>
-        <button class="btn ghost" id="next-fraud" data-i18n="fraud_next"></button>
-        <button class="btn ghost" id="play" data-i18n="fraud_play"></button>
+<!-- ======================================================= THE IDEA (the report) -->
+<div id="story" class="view">
+  <section class="hero proof" aria-labelledby="h-story">
+    <div class="container hero-in">
+      <div>
+        <h1 id="h-story" data-i18n="rep_title"></h1>
+        <p class="lead" id="hero-lede"></p>
+        <div class="actions">
+          <a class="btn btn--primary" href="#simulator" id="demo" data-i18n="sticker_t"></a>
+          <a class="btn" href="#results" data-i18n="hero_cta2"></a>
+        </div>
       </div>
-      <div class="netbar">
-        <span class="lbl note" id="lbl-color" data-i18n="color_by"></span>
-        <div class="seg" id="colorby" role="group" aria-labelledby="lbl-color"><button data-c="truth" data-i18n="color_truth"></button><button data-c="grade" data-i18n="color_grade"></button></div>
-        <label class="check"><input type="checkbox" id="cb-mist" checked> <span data-i18n="mistakes"></span></label>
+      <figure class="stage crop" style="margin:0">
+        <div class="stage-sheet">
+          <div class="stage-bar">
+            <div class="seg" id="hero-rule" role="group" aria-label="Rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev3" aria-pressed="true" data-i18n="hero_grades"></button></div>
+            <span class="note" id="hero-caption"></span>
+          </div>
+          <svg id="hero-net" class="net" viewBox="0 0 900 470" role="img" aria-label=""></svg>
+          <figcaption class="readout" id="hero-readout" aria-live="polite"></figcaption>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-ba">
+    <div class="container">
+      <div class="head"><h2 id="h-ba" data-i18n="ba_h"></h2><p class="lead" data-i18n="key_p"></p></div>
+      <div class="ba">
+        <div class="ba-claim">
+          <p id="p1"></p>
+          <p class="note"><span id="key-real"></span> <a class="cite" href="#real-data" data-i18n="cite_c"></a></p>
+        </div>
+        <figure class="ba-fig" style="margin:0">
+          <div class="bars" id="ba-bars"></div>
+          <figcaption class="note"><span class="guide-key" aria-hidden="true"></span><span data-i18n="ba_guide"></span> <span data-i18n="ba_cap"></span></figcaption>
+        </figure>
       </div>
-      <p id="fraud-head" class="fraud-head"></p>
-      <p class="note nethint" id="net-hint"></p>
-      <div class="netwrap"><svg id="net" viewBox="0 0 900 470" role="group" aria-label=""></svg></div>
-      <div id="legend" class="legend"></div>
-      <details class="acclist"><summary data-i18n="acc_list"></summary><div class="tablewrap" id="acc-table"></div></details>
     </div>
-    <aside class="card" id="card" aria-live="polite"></aside>
-  </div>
+  </section>
 
-  <details class="fold" id="adv">
-    <summary><span><span data-i18n="adv_h"></span><small id="adv-sub" data-i18n="adv_sub"></small></span></summary>
-    <div class="foldbody">
-      <p class="note warn" id="tune-off" hidden data-i18n="tune_off_10k"></p>
-      <label class="field"><span data-i18n="sl_g2share"></span> <b class="v" id="v-sigma"></b><input type="range" id="sl-sigma" min="0.01" max="0.5" step="0.01"></label>
-      <label class="field"><span data-i18n="sl_kappa"></span> <b class="v" id="v-kappa"></b><input type="range" id="sl-kappa" min="0.05" max="0.95" step="0.05"></label>
-      <label class="field"><span data-i18n="sl_pi"></span> <b class="v" id="v-pi"></b><input type="range" id="sl-pi" min="0.1" max="1" step="0.05"></label>
-      <label class="check"><input type="checkbox" id="cb-fan"> <span data-i18n="sl_fan"></span></label>
-      <label class="field"><span data-i18n="sl_fank"></span> <b class="v" id="v-fank"></b><input type="range" id="sl-fank" min="1" max="5" step="1"></label>
-      <label class="field"><span data-i18n="sl_fandt"></span> <b class="v" id="v-fandt"></b><input type="range" id="sl-fandt" min="1" max="168" step="1"></label>
-      <label class="field"><span data-i18n="sl_fanr"></span> <b class="v" id="v-fanr"></b><input type="range" id="sl-fanr" min="1.1" max="5" step="0.1"></label>
-      <p class="note warn" id="custom-note" hidden data-i18n="custom_note"></p>
-      <button class="link" id="reset" data-i18n="reset"></button>
+  <section class="sec tight band" aria-labelledby="h-trace">
+    <div class="container">
+      <div class="head"><h2 id="h-trace" data-i18n="trace_h"></h2><svg class="pathfig" viewBox="0 0 520 120" aria-hidden="true"><g class="pf-l"><path d="M34 60 H118"/><path d="M146 60 C210 60 230 24 300 24"/><path d="M146 60 H300"/><path d="M146 60 C210 60 230 96 300 96"/><path d="M330 24 H420"/><path d="M330 60 H420"/><path d="M330 96 H420"/></g><circle class="pf-ink" cx="22" cy="60" r="14"/><path class="pf-x" d="M15 53 L29 67 M29 53 L15 67"/><rect class="pf-mut" x="118" y="46" width="28" height="28"/><rect class="pf-box" x="300" y="8" width="30" height="104"/><circle class="pf-g1" cx="315" cy="24" r="7"/><circle class="pf-g2" cx="315" cy="60" r="7"/><circle class="pf-g1" cx="315" cy="96" r="7"/><circle class="pf-g1" cx="436" cy="24" r="9"/><circle class="pf-ring" cx="436" cy="24" r="11"/><circle class="pf-g3" cx="436" cy="60" r="9"/><circle class="pf-ring" cx="436" cy="60" r="11"/><circle class="pf-ring" cx="436" cy="60" r="15"/><circle class="pf-g0" cx="436" cy="96" r="9"/></svg></div>
+      <ol class="rows">
+        <li><h3 data-i18n="s1_h"></h3><p data-i18n="s1_p"></p></li>
+        <li><h3 data-i18n="s2_h"></h3><p data-i18n="s2_p"></p></li>
+        <li><h3 data-i18n="s3_h"></h3><p data-i18n="s3_p"></p></li>
+        <li><h3 data-i18n="s4_h"></h3><p><span data-i18n="s4_p"></span> <a class="cite" href="#simulator" id="cite-a" data-i18n="cite_a"></a></p></li>
+      </ol>
     </div>
-  </details>
+  </section>
 
-  <details class="fold" id="worldbox">
-    <summary><span><span data-i18n="world_sum"></span><small data-i18n="world_sub"></small></span></summary>
-    <div class="foldbody">
-      <label class="field"><span data-i18n="world_frauds"></span> <b class="v" id="v-frauds"></b><input type="range" id="sl-frauds" min="10" max="80" step="5" value="40"></label>
-      <div class="field"><span data-i18n="world_mules"></span> <b class="v" id="v-mules"></b>
-        <div class="two"><label>min<input type="range" id="sl-kmin" min="2" max="10" step="1" value="2" aria-label="minimum mules"></label><label>max<input type="range" id="sl-kmax" min="2" max="10" step="1" value="10" aria-label="maximum mules"></label></div></div>
-      <label class="field"><span data-i18n="world_window"></span>
-        <select id="sel-window"><option value="random" data-i18n="window_random"></option><option value="1">1 h</option><option value="6">6 h</option><option value="24">24 h</option><option value="72">72 h</option><option value="168">7 d</option></select></label>
-      <label class="field" id="lab-spread"><span data-i18n="world_spread"></span> <b class="v" id="v-spread"></b><input type="range" id="sl-spread" min="0" max="0.8" step="0.1" value="0.2"></label>
-      <label class="field"><span data-i18n="world_cex"></span> <b class="v" id="v-cex"></b><input type="range" id="sl-cex" min="0.1" max="1" step="0.05" value="0.3"></label>
-      <fieldset><legend data-i18n="world_patterns"></legend><div id="pat-boxes" class="pats"></div></fieldset>
-      <p><button class="btn" id="new-world" data-i18n="world_new"></button></p>
-      <div class="note" id="world-info" role="status" aria-live="polite"></div>
+  <section class="sec" aria-labelledby="h-grades">
+    <div class="container">
+      <div class="head"><h2 id="h-grades" data-i18n="grades_h"></h2><p class="lead" data-i18n="grades_p"></p></div>
+      <div class="tablewrap">
+        <table class="t gradetable">
+          <tbody>
+            <tr><th scope="row"><span class="glyph g0" aria-hidden="true"></span><span class="gname">G0</span></th><td data-i18n="g0_d"></td></tr>
+            <tr><th scope="row"><span class="glyph g1" aria-hidden="true"></span><span class="gname">G1</span></th><td data-i18n="g1_d"></td></tr>
+            <tr><th scope="row"><span class="glyph g2" aria-hidden="true"></span><span class="gname">G2</span></th><td data-i18n="g2_d"></td></tr>
+            <tr><th scope="row"><span class="glyph g3" aria-hidden="true"></span><span class="gname">G3</span></th><td data-i18n="g3_d"></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </details>
+  </section>
 
-  <h2 class="sec" data-i18n="met_all"></h2>
-  <div class="mgrid" id="metrics"></div>
-  <div class="roles" id="roles"></div>
-  <p class="note" data-i18n="met_one_world"></p>
-</section>
+  <section class="sec tight proof" aria-labelledby="h-world">
+    <div class="container world-split">
+      <div class="stage crop">
+        <div class="stage-sheet"><canvas id="world-preview" width="960" height="720" role="img" aria-label=""></canvas></div>
+      </div>
+      <div>
+        <h2 id="h-world" data-i18n="world_story_h"></h2>
+        <p class="lead" id="world-lead"></p>
+        <a class="btn" href="#simulator" id="open-world" data-i18n="world_open"></a>
+      </div>
+    </div>
+  </section>
 
-<!-- ======================================================= EXHIBIT B: RESULTS -->
-<section id="results" class="page" aria-labelledby="h-res">
-  <div class="caption"><span data-i18n="exhibit_b"></span><span>FP1-B</span></div>
-  <h1 class="xtitle" id="h-res"><span data-i18n="res_h"></span></h1>
-  <p class="sub" data-i18n="res_intro"></p>
-  <div class="tablewrap" id="res-table"></div>
-  <div class="figs">
-    <figure class="fig"><figcaption><b id="cap-main"></b><span data-i18n="res_main_p"></span></figcaption><div class="chart"><canvas id="ch-main"></canvas></div></figure>
-    <figure class="fig"><figcaption><b id="cap-role"></b></figcaption><div class="chart"><canvas id="ch-role"></canvas></div></figure>
-    <figure class="fig wide"><figcaption><b id="cap-pattern"></b></figcaption><div class="chart"><canvas id="ch-pattern"></canvas></div></figure>
-    <figure class="fig"><figcaption><b id="cap-speed"></b><span data-i18n="res_speed_p"></span></figcaption><div class="chart"><canvas id="ch-speed"></canvas></div></figure>
-    <figure class="fig"><figcaption><b id="cap-k"></b><span data-i18n="res_k_p"></span></figcaption><div class="chart"><canvas id="ch-k"></canvas></div></figure>
+
+  <section class="sec tight band" aria-labelledby="h-close">
+    <div class="container close">
+      <div>
+        <h2 id="h-close" data-i18n="close_h"></h2>
+        <div class="actions"><a class="btn btn--primary" href="#simulator" data-i18n="open_sim"></a></div>
+        <dl class="limits-list"><div><dt data-i18n="honest_h"></dt><dd data-i18n="honest_p"></dd></div><div><dt data-i18n="runs_h"></dt><dd data-i18n="runs_p"></dd></div></dl>
+      </div>
+      <dl class="close-facts" id="close-facts"></dl>
+    </div>
+  </section>
+</div>
+
+<!-- ======================================================= SIMULATOR -->
+<div id="simulator" class="view">
+  <div class="container">
+    <header class="vhead"><h1 id="h-sim" data-i18n="sim_h"></h1></header>
+    <div id="engine" class="engine" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="engine-msg" data-i18n="engine_idle"></span></div>
+    <p class="try" data-i18n="try_h"></p>
+
+    <div class="rulebar">
+      <span class="lbl" id="lbl-rule" data-i18n="rule_h"></span>
+      <div class="seg" id="presets" role="group" aria-labelledby="lbl-rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev2" data-i18n="preset_rev2"></button><button type="button" data-preset="rev3" data-i18n="preset_rev3"></button></div>
+      <div class="seg" id="vis" role="group" aria-label="Visibility"><button type="button" data-vis="V1" data-i18n="vis_v1"></button><button type="button" data-vis="V3" data-i18n="vis_v3"></button></div>
+    </div>
+    <p class="note visnote" data-i18n="vis_note"></p>
+
+    <div class="strip tablewrap" id="strip" aria-live="polite"></div>
+
+    <div class="rulebar" style="margin-bottom:var(--space-md)">
+      <span class="lbl" id="lbl-view" data-i18n="view_h"></span>
+      <div class="seg" id="view-switch" role="group" aria-labelledby="lbl-view"><button type="button" data-view="one" aria-pressed="true" data-i18n="view_one"></button><button type="button" data-view="world" aria-pressed="false" data-i18n="view_world"></button></div>
+    </div>
+
+    <div class="simgrid">
+      <div class="netpanel">
+        <div id="one-view">
+          <div class="netbar">
+            <label class="field"><span data-i18n="fraud_pick"></span><select id="sel-fraud"></select></label>
+            <button class="btn" type="button" id="next-fraud" data-i18n="fraud_next"></button>
+            <button class="btn" type="button" id="play" data-i18n="fraud_play"></button>
+          </div>
+          <div class="netbar">
+            <span class="lbl note" id="lbl-color" data-i18n="color_by"></span>
+            <div class="seg" id="colorby" role="group" aria-labelledby="lbl-color"><button type="button" data-c="truth" data-i18n="color_truth"></button><button type="button" data-c="grade" data-i18n="color_grade"></button></div>
+            <label class="check"><input type="checkbox" id="cb-mist" checked> <span data-i18n="mistakes"></span></label>
+          </div>
+          <p id="fraud-head" class="fraud-head"></p>
+          <p class="note nethint" id="net-hint"></p>
+          <div class="netwrap netsheet"><svg id="net" class="net" viewBox="0 0 900 470" role="group" aria-label=""></svg><div class="tip" id="net-tip" hidden></div></div>
+          <div id="legend" class="legend"></div>
+          <details class="acclist"><summary data-i18n="acc_list"></summary><div class="tablewrap" id="acc-table"></div></details>
+        </div>
+        <div id="world-view" hidden>
+          <p class="world-sum" id="world-sum"></p>
+          <div class="netwrap netsheet"><canvas id="world-canvas" width="1280" height="800" role="img" aria-label=""></canvas><div class="tip" id="world-tip" hidden></div></div>
+          <div id="world-legend" class="legend"></div>
+          <details class="acclist"><summary data-i18n="world_list"></summary><div class="tablewrap" id="world-table"></div></details>
+        </div>
+      </div>
+      <aside class="card" id="card" aria-live="polite"></aside>
+    </div>
+
+    <div style="margin-top:var(--space-2xl)">
+      <details class="fold" id="adv">
+        <summary><span><span data-i18n="adv_h"></span><small id="adv-sub" data-i18n="adv_sub"></small></span></summary>
+        <div class="foldbody">
+          <p class="note warn" id="tune-off" hidden data-i18n="tune_off_10k"></p>
+          <label class="field"><span data-i18n="sl_g2share"></span> <b class="v" id="v-sigma"></b><input type="range" id="sl-sigma" min="0.01" max="0.5" step="0.01"></label>
+          <label class="field"><span data-i18n="sl_kappa"></span> <b class="v" id="v-kappa"></b><input type="range" id="sl-kappa" min="0.05" max="0.95" step="0.05"></label>
+          <label class="field"><span data-i18n="sl_pi"></span> <b class="v" id="v-pi"></b><input type="range" id="sl-pi" min="0.1" max="1" step="0.05"></label>
+          <label class="check"><input type="checkbox" id="cb-fan"> <span data-i18n="sl_fan"></span></label>
+          <label class="field"><span data-i18n="sl_fank"></span> <b class="v" id="v-fank"></b><input type="range" id="sl-fank" min="1" max="5" step="1"></label>
+          <label class="field"><span data-i18n="sl_fandt"></span> <b class="v" id="v-fandt"></b><input type="range" id="sl-fandt" min="1" max="168" step="1"></label>
+          <label class="field"><span data-i18n="sl_fanr"></span> <b class="v" id="v-fanr"></b><input type="range" id="sl-fanr" min="1.1" max="5" step="0.1"></label>
+          <p class="note warn" id="custom-note" hidden data-i18n="custom_note"></p>
+          <button class="link" type="button" id="reset" data-i18n="reset"></button>
+        </div>
+      </details>
+      <details class="fold" id="worldbox">
+        <summary><span><span data-i18n="world_sum"></span><small data-i18n="world_sub"></small></span></summary>
+        <div class="foldbody">
+          <label class="field"><span data-i18n="world_frauds"></span> <b class="v" id="v-frauds"></b><input type="range" id="sl-frauds" min="10" max="80" step="5" value="40"></label>
+          <div class="field"><span data-i18n="world_mules"></span> <b class="v" id="v-mules"></b>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm)"><input type="range" id="sl-kmin" min="2" max="10" step="1" value="2" aria-label="minimum mules"><input type="range" id="sl-kmax" min="2" max="10" step="1" value="10" aria-label="maximum mules"></div></div>
+          <label class="field"><span data-i18n="world_window"></span>
+            <select id="sel-window"><option value="random" data-i18n="window_random"></option><option value="1">1 h</option><option value="6">6 h</option><option value="24">24 h</option><option value="72">72 h</option><option value="168">7 d</option></select></label>
+          <label class="field" id="lab-spread"><span data-i18n="world_spread"></span> <b class="v" id="v-spread"></b><input type="range" id="sl-spread" min="0" max="0.8" step="0.1" value="0.2"></label>
+          <label class="field"><span data-i18n="world_cex"></span> <b class="v" id="v-cex"></b><input type="range" id="sl-cex" min="0.1" max="1" step="0.05" value="0.3"></label>
+          <fieldset><legend data-i18n="world_patterns"></legend><div id="pat-boxes" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:0 var(--space-md)"></div></fieldset>
+          <p style="margin-top:var(--space-md)"><button class="btn btn--primary" type="button" id="new-world" data-i18n="world_new"></button></p>
+          <div class="note" id="world-info" role="status" aria-live="polite" style="margin-top:var(--space-sm)"></div>
+        </div>
+      </details>
+    </div>
+
+    <h2 class="subhead" data-i18n="met_all"></h2>
+    <div class="mgrid" id="metrics"></div>
+    <div class="roles" id="roles"></div>
+    <p class="note" data-i18n="met_one_world" style="margin-block:var(--space-lg) var(--section-gap-s)"></p>
   </div>
-</section>
+</div>
 
-<!-- ======================================================= EXHIBIT C: REAL DATA -->
-<section id="real-data" class="page" aria-labelledby="h-real">
-  <div class="caption"><span data-i18n="exhibit_c"></span><span>FP1-C</span></div>
-  <h1 class="xtitle" id="h-real"><span data-i18n="real_h"></span></h1>
-  <div class="notice"><h2 data-i18n="real_notice_h"></h2><p data-i18n="real_notice_p"></p></div>
-  <p class="sub" data-i18n="real_intro"></p>
-  <div class="tablewrap read" id="real-kpis"></div>
-  <div class="figs">
-    <figure class="fig"><figcaption><b id="cap-flow"></b></figcaption><div class="chart"><canvas id="ch-flow"></canvas></div></figure>
-    <figure class="fig"><figcaption><b id="cap-ex"></b></figcaption><div class="chart"><canvas id="ch-ex"></canvas></div></figure>
-    <div class="fig"><div class="tablewrap" id="real-roles"></div></div>
-    <div class="fig"><div class="tablewrap" id="real-grades"></div></div>
-    <figure class="fig"><figcaption><b id="cap-check"></b><span data-i18n="real_check_p"></span></figcaption><div class="chart"><canvas id="ch-check"></canvas></div></figure>
-    <div class="fig"><h2 class="sec" style="margin-top:0" data-i18n="real_fan_h"></h2><p id="real-fan" class="read"></p></div>
-    <div class="fig wide"><div class="tablewrap" id="real-g3"></div></div>
+<!-- ======================================================= RESULTS -->
+<div id="results" class="view">
+  <div class="container" style="padding-bottom:var(--section-gap-s)">
+    <header class="vhead"><h1 id="h-res" data-i18n="res_h"></h1><p class="lead" data-i18n="res_intro"></p></header>
+    <div class="tablewrap" id="res-table"></div>
+    <div class="figs">
+      <figure class="fig"><figcaption><b id="cap-main"></b><span data-i18n="res_main_p"></span></figcaption><div class="chart"><canvas id="ch-main" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig"><figcaption><b id="cap-role"></b></figcaption><div class="chart"><canvas id="ch-role" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig wide"><figcaption><b id="cap-pattern"></b></figcaption><div class="chart"><canvas id="ch-pattern" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig"><figcaption><b id="cap-speed"></b><span data-i18n="res_speed_p"></span></figcaption><div class="chart"><canvas id="ch-speed" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig"><figcaption><b id="cap-k"></b><span data-i18n="res_k_p"></span></figcaption><div class="chart"><canvas id="ch-k" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+    </div>
   </div>
-  <div class="limits"><h2 data-i18n="real_limits_h"></h2><ul id="real-limits"></ul></div>
-</section>
+</div>
 
-<!-- ======================================================= EXHIBIT D: DATA -->
-<section id="data" class="page" aria-labelledby="h-data">
-  <div class="caption"><span data-i18n="exhibit_d"></span><span>FP1-D</span></div>
-  <h1 class="xtitle" id="h-data"><span data-i18n="data_h"></span></h1>
-  <p class="sub" data-i18n="data_intro"></p>
-  <div class="tablewrap" id="cols"></div>
-  <div class="tablewrap" id="rows"></div>
-  <div class="cols2">
-    <div><h2 class="sec" data-i18n="data_patterns_h"></h2><ul id="pat-list"></ul></div>
-    <div><h2 class="sec" data-i18n="data_roles_h"></h2><ul id="role-list"></ul></div>
+<!-- ======================================================= REAL DATA -->
+<div id="real-data" class="view">
+  <div class="container" style="padding-bottom:var(--section-gap-s)">
+    <header class="vhead"><h1 id="h-real" data-i18n="real_h"></h1><p class="lead" data-i18n="real_intro"></p></header>
+    <div class="notice crop"><h2 data-i18n="real_notice_h"></h2><p data-i18n="real_notice_p"></p></div>
+    <div class="tablewrap" id="real-kpis"></div>
+    <div class="figs">
+      <figure class="fig"><figcaption><b id="cap-flow"></b></figcaption><div class="chart"><canvas id="ch-flow" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig"><figcaption><b id="cap-ex"></b></figcaption><div class="chart"><canvas id="ch-ex" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <div class="fig"><div class="tablewrap" id="real-roles"></div></div>
+      <div class="fig"><div class="tablewrap" id="real-grades"></div></div>
+      <figure class="fig"><figcaption><b id="cap-check"></b><span data-i18n="real_check_p"></span></figcaption><div class="chart"><canvas id="ch-check" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <div class="fig"><h2 class="subhead" style="margin-top:0" data-i18n="real_fan_h"></h2><p id="real-fan"></p></div>
+      <div class="fig wide"><div class="tablewrap" id="real-g3"></div></div>
+    </div>
+    <div class="limits"><h2 data-i18n="real_limits_h"></h2><ul id="real-limits"></ul></div>
   </div>
-</section>
+</div>
 
-<!-- ======================================================= EXHIBIT E: SOURCES -->
-<section id="sources" class="page" aria-labelledby="h-src">
-  <div class="caption"><span data-i18n="exhibit_e"></span><span>FP1-E</span></div>
-  <h1 class="xtitle" id="h-src"><span data-i18n="about_h"></span></h1>
-  <p class="read" data-i18n="about_code"></p>
-  <ol class="sources" id="src-list"></ol>
-</section>
+<!-- ======================================================= DATA EXPLAINED -->
+<div id="data" class="view">
+  <div class="container" style="padding-bottom:var(--section-gap-s)">
+    <header class="vhead"><h1 id="h-data" data-i18n="data_h"></h1><p class="lead" data-i18n="data_intro"></p></header>
+    <div class="tablewrap" id="cols"></div>
+    <div class="tablewrap" id="rows"></div>
+    <div class="cols2">
+      <div><h2 data-i18n="data_patterns_h"></h2><ul id="pat-list"></ul></div>
+      <div><h2 data-i18n="data_roles_h"></h2><ul id="role-list"></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= SOURCES -->
+<div id="sources" class="view">
+  <div class="container" style="padding-bottom:var(--section-gap-s)">
+    <header class="vhead"><h1 id="h-src" data-i18n="about_h"></h1><p class="lead" data-i18n="about_code"></p></header>
+    <ol class="sources" id="src-list"></ol>
+  </div>
+</div>
 
 </main>
 
-<nav class="tabs" id="nav" aria-label="Exhibits">
-  <a class="t-r" href="#story"><b data-i18n="tab_r_k"></b><span data-i18n="tab_r"></span></a>
-  <a class="t-a" href="#simulator"><b>A</b><span data-i18n="nav_sim"></span></a>
-  <a class="t-b" href="#results"><b>B</b><span data-i18n="nav_results"></span></a>
-  <a class="t-c" href="#real-data"><b>C</b><span data-i18n="nav_real"></span></a>
-  <a class="t-d" href="#data"><b>D</b><span data-i18n="nav_data"></span></a>
-  <a class="t-e" href="#sources"><b>E</b><span data-i18n="nav_about"></span></a>
-</nav>
-</div>
+<footer class="mast">
+  <div class="container">
+    <p class="word" aria-hidden="true">Fraudster +1</p>
+    <div class="mast-grid">
+      <nav aria-label="Footer">
+        <a href="#story" data-i18n="nav_story"></a>
+        <a href="#simulator" data-i18n="nav_sim"></a>
+        <a href="#results" data-i18n="nav_results"></a>
+        <a href="#real-data" data-i18n="nav_real"></a>
+        <a href="#sources" data-i18n="nav_about"></a>
+        <a href="https://github.com/WailZELLAGUI/Blacklisting-" rel="noopener" data-i18n="footer_code"></a>
+      </nav>
+      <div class="who"><p data-i18n="footer_author"></p><p class="note" data-i18n="footer_cite"></p></div>
+    </div>
+  </div>
+</footer>
 
 <!-- ======================================================= ASK CLAUDE -->
 <div id="ask" class="ask" role="dialog" aria-labelledby="ask-title" hidden>
-  <div class="askhead"><h2 id="ask-title" data-i18n="ask_h"></h2><button class="link" id="ask-close" data-i18n="close"></button></div>
+  <div class="askhead"><h2 id="ask-title" data-i18n="ask_h"></h2><button class="link" type="button" id="ask-close" data-i18n="close"></button></div>
   <div class="askkey">
     <label class="field"><span data-i18n="ask_key"></span><input type="password" id="ask-key" autocomplete="off" placeholder="sk-ant-…"></label>
     <label class="check"><input type="checkbox" id="ask-remember"> <span data-i18n="ask_remember"></span></label>
     <p class="note" data-i18n="ask_key_note"></p>
   </div>
   <div id="ask-log" class="asklog" aria-live="polite"></div>
-  <form id="ask-form"><label class="sr-only" for="ask-in" data-i18n="ask_h"></label><textarea id="ask-in" rows="3"></textarea><button class="btn" data-i18n="ask_send"></button></form>
+  <form id="ask-form"><label class="visually-hidden" for="ask-in" data-i18n="ask_h"></label><textarea id="ask-in" rows="3"></textarea><button class="btn btn--primary" type="submit" data-i18n="ask_send"></button></form>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/net.js"></script>
+<script src="js/world.js"></script>
 <script src="js/app.js"></script>
 <script src="js/claude.js"></script>
 </body>
