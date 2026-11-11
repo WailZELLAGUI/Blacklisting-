@@ -5,6 +5,9 @@
 
 Interactive website (English / French): open `index.html` through GitHub Pages.
 
+**Author:** Wail Zellagui, PhD candidate in cybersecurity, LORIA, Université de Lorraine.
+This site accompanies the chapter "Fraudster +1" of the author's PhD thesis on fraud in cryptocurrencies.
+
 ## What is in the site
 
 | Section | Content |
@@ -17,7 +20,7 @@ Interactive website (English / French): open `index.html` through GitHub Pages.
 | Sources | Data sets and studies used |
 
 An optional "Ask Claude" box drives the simulator in plain language. It uses the visitor's own
-Anthropic API key, which stays in the visitor's browser.
+Anthropic API key, which stays in the visitor's browser. It is a feature of the page, not part of the method.
 
 ## Files
 
@@ -43,3 +46,22 @@ Two settings about the fraudster's collector wallet come from our BigQuery data 
 python3 -m http.server 8000
 ```
 then open http://localhost:8000.
+
+## How this work was made
+
+The research questions, the method (the evidence grades G0-G3, the fan-out route and the cross-exchange
+protocol), the choice of data sources, every threshold and the reading of the results are the author's.
+
+Parts of the implementation, mainly this website's interface and parts of the simulator and data-processing
+scripts, were written with the help of Claude Code (Anthropic), an AI coding assistant, under the author's
+direction. The code was reviewed, run and tested by the author, and the results are reproducible:
+
+- every number on the site is read from the result files of the experiments (`data/thesis.json`), not typed by hand;
+- the page re-runs world 2027 in the browser and checks that it gives the same result as the stored run;
+- every threshold is either taken from a cited source or chosen by a search on calibration worlds and tested
+  on separate test worlds, as the site explains.
+
+## License and citation
+
+Code and text by Wail Zellagui. To cite this work, please cite the author's PhD thesis (LORIA, Université de Lorraine).
+
