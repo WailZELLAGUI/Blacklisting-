@@ -139,6 +139,28 @@ def grade(spec="{}"):
                            frauds_with_one_found=_f(fr.mean()) if len(fr) else None))
 
 
+def timeline(spec="{}"):
+    """Same world and same rule, graded at tau + 1 / 7 / 30 / 90 days and at the end of the horizon."""
+    spec = json.loads(spec) if isinstance(spec, str) else dict(spec)
+    rule, vis = _rule(spec)
+    w, seed = STATE["w"], STATE["seed"]
+    out = []
+    for d in (1, 7, 30, 90, None):
+        df = (D2.add_ms_columns(candidate_table(w, world_id=seed)) if d is None
+              else candidate_table_at(w, float(d) * DAY, world_id=seed)).reset_index(drop=True)
+        g1, g2, g3, ch = D3.parts(df, rule, vis)
+        grades = g1.astype(int) + g2.astype(int) + g3.astype(int)
+        ten = b0(df).values
+        flag = ten if spec.get("preset") == "10k" else grades >= 2
+
+        def m(f):
+            s_ = score(df, pd.Series(f, index=df.index))
+            return dict(precision=_f(s_["precision"]), recall=_f(s_["recall"]), value_recall=_f(s_["value_recall"]),
+                        found=int(s_["tp"]), false_alerts=int(s_["fp"]))
+        out.append(dict(days=d, selected=m(flag), g3=m(grades >= 3), ten_k=m(ten)))
+    return json.dumps(out)
+
+
 def _rule_public(r):
     return dict(g1_share=r.sigma_g1, g2_share=r.sigma, concentration=r.kappa, pass_through=r.pi,
                 window_h=r.delta, behaviour_mode=r.mode, second_seed_floor=r.ms_floor,
