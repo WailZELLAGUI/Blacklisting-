@@ -77,7 +77,7 @@ const APP = (() => {
   /* ---------------------------------------------------------------- URL state: rule, fraud and account survive a reload or a shared link */
   function readUrl() {
     const q = new URLSearchParams(location.search);
-    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule') === 'rev2' ? 'rev4' : q.get('rule');   // revision 2 was replaced by revision 4
+    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule') === 'rev2' ? 'rev4' : q.get('rule');   // the lead rule is shown as "Revision 2" (internal preset id rev4)
     if (['V1', 'V3'].includes(q.get('vis'))) S.vis = q.get('vis');
     if (q.get('fraud')) S.urlFraud = +q.get('fraud');
     if (q.get('acc')) S.urlAcc = q.get('acc');
