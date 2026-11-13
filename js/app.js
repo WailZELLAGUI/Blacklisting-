@@ -129,6 +129,11 @@ const APP = (() => {
     const m = S.thesis.main_E;
     $('#p1').innerHTML = t('p1', { a: pct(m.ten_k.precision, 0), b: `<mark>${pct(m.rev4_V3.precision, 0)}</mark>` }) +
       ` <a class="cite" href="#results">${esc(t('cite_b1'))}</a>`;
+    // the three headline measures side by side: found, precision, money covered (same 20 test worlds)
+    const hm = [['key_found', 'recall'], ['key_prec', 'precision'], ['key_money', 'value_recall']];
+    if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div>');
+    $('#key3').innerHTML = `<table class="t"><caption>${esc(t('key3_cap'))}</caption><thead><tr><th scope="col"></th><th scope="col" class="n">${esc(t('key_rule10'))}</th><th scope="col" class="n">${esc(t('hero_grades'))}</th></tr></thead><tbody>` +
+      hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev4_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
     const k = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3'], ['rev4_V3', 'key_rev4']];
     if ($('#kpis')) $('#kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('key_tbl'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('key_found')}</th><th scope="col" class="n">${t('key_prec')}</th></tr></thead><tbody>` +
       k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev4_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
