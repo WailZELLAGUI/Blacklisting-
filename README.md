@@ -47,8 +47,12 @@ list (ScamSniffer timing), each fraud graded 90 days after blacklisting, when 9 
 received money. Recall counts every account the fraud will ever pay. The default world 2027 uses the same settings.
 Figure 2 shows how the results grow from 7 days after blacklisting to the end of the simulated year.
 
-The lead rule is **revision 4**: revision 2 without the "or the whole fraud" amount branch, which added nothing
-(an account that receives the whole fraud already passes the share test). Revision 3 (fan-out route) stays
+The lead rule is **revision 4**. It replaces revision 2, which is no longer shown on the site: same thresholds,
+without the "or the whole fraud" amount branch, which found no extra account and only added false alerts (an account
+that receives the whole fraud already passes the share test). On the 20 test worlds (90 days after blacklisting)
+revision 4 finds the same 33.9 % of involved accounts as revision 2, at 89.5 % precision instead of 88.4 %; on the
+two sensitivity sweeps (mule speed, mules per fraud) it also finds the same accounts, about 1 point more precisely
+(`experiments11.py`, `results4/sweeps_measured_rev4.csv`). Revision 3 (fan-out route) stays
 available but is not the headline: it stays below 90 % precision, and on real data two exchange accounts paid by the
 same scammer are a median of 25 days apart, so its 6-hour route would rarely fire. The earlier headline (hand-set
 timing, end of a 180-day period) is kept in `data/thesis.json` as `main_E_handset`.

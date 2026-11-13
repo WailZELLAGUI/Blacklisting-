@@ -783,6 +783,12 @@
    "recall": 0.6966
   },
   {
+   "window_h": 1.0,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8974,
+   "recall": 0.3898
+  },
+  {
    "window_h": 24.0,
    "detector": "Rev2 frozen V3 G2+",
    "precision": 0.9004,
@@ -799,6 +805,12 @@
    "detector": "Rev3 V3 G2+",
    "precision": 0.8804,
    "recall": 0.6054
+  },
+  {
+   "window_h": 24.0,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9074,
+   "recall": 0.377
   },
   {
    "window_h": 72.0,
@@ -819,6 +831,12 @@
    "recall": 0.4713
   },
   {
+   "window_h": 72.0,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8951,
+   "recall": 0.3915
+  },
+  {
    "window_h": 168.0,
    "detector": "Rev2 frozen V3 G2+",
    "precision": 0.8973,
@@ -835,6 +853,12 @@
    "detector": "Rev3 V3 G2+",
    "precision": 0.8462,
    "recall": 0.4101
+  },
+  {
+   "window_h": 168.0,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9036,
+   "recall": 0.3673
   }
  ],
  "sweep_k": [
@@ -909,6 +933,30 @@
    "detector": "Rev3 V1 G2+",
    "precision": 0.884,
    "recall": 0.4034
+  },
+  {
+   "k": 2,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.839,
+   "recall": 0.4438
+  },
+  {
+   "k": 3,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8346,
+   "recall": 0.4499
+  },
+  {
+   "k": 5,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9119,
+   "recall": 0.4128
+  },
+  {
+   "k": 10,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.913,
+   "recall": 0.3837
   }
  ],
  "main_D": {

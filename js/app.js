@@ -77,7 +77,7 @@ const APP = (() => {
   /* ---------------------------------------------------------------- URL state: rule, fraud and account survive a reload or a shared link */
   function readUrl() {
     const q = new URLSearchParams(location.search);
-    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule');
+    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule') === 'rev2' ? 'rev4' : q.get('rule');   // revision 2 was replaced by revision 4
     if (['V1', 'V3'].includes(q.get('vis'))) S.vis = q.get('vis');
     if (q.get('fraud')) S.urlFraud = +q.get('fraud');
     if (q.get('acc')) S.urlAcc = q.get('acc');
@@ -134,7 +134,7 @@ const APP = (() => {
     if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div>');
     $('#key3').innerHTML = `<table class="t"><caption>${esc(t('key3_cap'))}</caption><thead><tr><th scope="col"></th><th scope="col" class="n">${esc(t('key_rule10'))}</th><th scope="col" class="n">${esc(t('hero_grades'))}</th></tr></thead><tbody>` +
       hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev4_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
-    const k = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3'], ['rev4_V3', 'key_rev4']];
+    const k = [['ten_k', 'key_rule10'], ['rev4_V3', 'key_rev4'], ['rev3_V3', 'key_rev3']];
     if ($('#kpis')) $('#kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('key_tbl'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('key_found')}</th><th scope="col" class="n">${t('key_prec')}</th></tr></thead><tbody>` +
       k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev4_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
     const c = S.thesis.real.check_90d;
@@ -217,7 +217,7 @@ const APP = (() => {
     $('#v-spread').textContent = (+$('#sl-spread').value).toFixed(1); $('#v-cex').textContent = pct(+$('#sl-cex').value, 0);
   }
   async function regrade(keepFraud = true) {
-    const spec = { preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev2' : S.preset, overrides: S.overrides };
+    const spec = { preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev4' : S.preset, overrides: S.overrides };
     S.res = await engGrade(spec);
     if (!keepFraud || S.fraud === null) S.fraud = pickFraud();
     S.graph = await engGraph(S.fraud);
@@ -385,7 +385,7 @@ const APP = (() => {
     S.tlBusy = true; renderTimeline();
     try {
       const key = tlKey();
-      const rows = JSON.parse(await call('timeline', JSON.stringify({ preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev2' : S.preset, overrides: S.overrides })));
+      const rows = JSON.parse(await call('timeline', JSON.stringify({ preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev4' : S.preset, overrides: S.overrides })));
       S.tl = { key, rows };
     } catch (e) { S.tl = null; }
     S.tlBusy = false; renderTimeline();
@@ -491,11 +491,11 @@ const APP = (() => {
     if (!S.thesis || typeof Chart === 'undefined') return;
     Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452';
     const m = S.thesis.main_E;
-    const L = { ten_k: t('preset_10k'), rev2_V1: `${t('preset_rev2')} (${t('vis_v1').toLowerCase()})`, rev2_V3: `${t('preset_rev2')} (${t('vis_v3').toLowerCase()})`,
-      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})`,
-      rev4_V1: `${t('preset_rev4')} (${t('vis_v1').toLowerCase()})`, rev4_V3: `${t('preset_rev4')} (${t('vis_v3').toLowerCase()})` };
+    const L = { ten_k: t('preset_10k'),
+      rev4_V1: `${t('preset_rev4')} (${t('vis_v1').toLowerCase()})`, rev4_V3: `${t('preset_rev4')} (${t('vis_v3').toLowerCase()})`,
+      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})` };
     const ks = Object.keys(L);
-    const rows = ks.concat(['rev2_V3_G3', 'rev3_V3_G3', 'rev4_V3_G3']);
+    const rows = ks.concat(['rev4_V3_G3', 'rev3_V3_G3']);
     const lab = (k) => L[k] || `${t('preset_' + k.slice(0, 4))}, G3`;
     const ci = (lo, hi) => `<span class="ci">(${(100 * lo).toFixed(0)} ${t('to')} ${(100 * hi).toFixed(0)})</span>`;
     $('#res-table').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('res_table_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('col_rec')}</th><th scope="col" class="n">${t('col_prec')}</th><th scope="col" class="n">${t('col_val')}</th><th scope="col" class="n">${t('col_fa')}</th></tr></thead><tbody>` +
@@ -519,9 +519,8 @@ const APP = (() => {
     const rl = [['own account (SELF)', t('roles').SELF], ['mule', t('roles').MULE], ['mule, without T7', t('roles').MULE + ' (≠T7)'], ['facilitator', t('roles').FACILITATOR], ['all involved', t('all_involved')]];
     const three = (src, keys) => [
       { label: t('preset_10k'), data: keys.map(x => 100 * src(x).ten_k), backgroundColor: C.k10 },
-      { label: t('preset_rev2'), data: keys.map(x => 100 * src(x).rev2), backgroundColor: C.r2 },
-      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3b },
-      { label: t('preset_rev4'), data: keys.map(x => 100 * src(x).rev4), backgroundColor: C.r4 }];
+      { label: t('preset_rev4'), data: keys.map(x => 100 * src(x).rev4), backgroundColor: C.r4 },
+      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3b }];
     chart('ch-role', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 1.25, data: { labels: rl.map(x => x[1]), datasets: three(x => br[x], rl.map(x => x[0])) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
     const bp = S.thesis.by_pattern_E, pk = Object.keys(bp);
     chart('ch-pattern', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 2.4, data: { labels: pk.map(k => patName(k)), datasets: three(k => bp[k], pk) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
@@ -529,10 +528,10 @@ const APP = (() => {
     const ser = (det, k) => wins.map(w => 100 * sp.find(x => x.window_h === w && x.detector === det)[k]);
     const wl = wins.map(w => w <= 72 ? w + ' h' : (S.lang === 'fr' ? '7 jours' : '7 days'));
     const lines = (f) => [
-      { label: `${t('col_rec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'recall'), borderColor: C.r3, backgroundColor: C.r3, borderWidth: 3 },
-      { label: `${t('col_rec')}, ${t('preset_rev2')}`, data: f('Rev2 frozen V3 G2+', 'recall'), borderColor: C.r2, backgroundColor: C.r2, borderWidth: 3 },
-      { label: `${t('col_prec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'precision'), borderColor: C.r3, borderDash: [6, 4], backgroundColor: C.r3, borderWidth: 2 },
-      { label: `${t('col_prec')}, ${t('preset_rev2')}`, data: f('Rev2 frozen V3 G2+', 'precision'), borderColor: C.r2, borderDash: [6, 4], backgroundColor: C.r2, borderWidth: 2 }];
+      { label: `${t('col_rec')}, ${t('preset_rev4')}`, data: f('Rev4 V3 G2+', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
+      { label: `${t('col_rec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'recall'), borderColor: C.r3b, backgroundColor: C.r3b, borderWidth: 3 },
+      { label: `${t('col_prec')}, ${t('preset_rev4')}`, data: f('Rev4 V3 G2+', 'precision'), borderColor: C.r4, borderDash: [6, 4], backgroundColor: C.r4, borderWidth: 2 },
+      { label: `${t('col_prec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'precision'), borderColor: C.r3b, borderDash: [6, 4], backgroundColor: C.r3b, borderWidth: 2 }];
     chart('ch-speed', { type: 'line', data: { labels: wl, datasets: lines(ser) }, options: { scales: { y: pctAxis } } });
     const sk = S.thesis.sweep_k, kk = [...new Set(sk.map(x => x.k))];
     const kser = (det, k) => kk.map(v => 100 * sk.find(x => x.k === v && x.detector === det)[k]);
