@@ -1,8 +1,8 @@
 /* Main page logic: exhibit tabs, languages, simulator, charts. */
 const APP = (() => {
-  const S = { lang: 'en', thesis: null, def: null, world: null, res: null, graph: null, preset: 'rev3', vis: 'V3', overrides: {},
+  const S = { lang: 'en', thesis: null, def: null, world: null, res: null, graph: null, preset: 'rev4', vis: 'V3', overrides: {},
     colorBy: 'grade', mistakes: true, fraud: null, selected: null, engine: 'idle', engineVersion: '', worker: null,
-    pending: {}, nextId: 1, charts: {}, busy: false, rows: null, page: 'story', view: 'one', heroPreset: 'rev3' };
+    pending: {}, nextId: 1, charts: {}, busy: false, rows: null, page: 'story', view: 'one', heroPreset: 'rev4' };
   const $ = (q) => document.querySelector(q);
   const $$ = (q) => [...document.querySelectorAll(q)];
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -35,9 +35,9 @@ const APP = (() => {
         S.engineVersion = m.version;
         // load the same world the page shows, so every later call works on it
         call('new_world', JSON.stringify({ seed: S.world.seed, ...(S.world.params || {}) }), true)
-          .then(() => call('grade', JSON.stringify({ preset: 'rev3', vis: 'V3', base: 'rev3', overrides: {} }), true))
+          .then(() => call('grade', JSON.stringify({ preset: 'rev4', vis: 'V3', base: 'rev4', overrides: {} }), true))
           .then((g) => {
-            const ref = S.def.grades['rev3|V3'].selected;
+            const ref = S.def.grades['rev4|V3'].selected;
             S.identical = g.selected.found === ref.found && g.selected.false_alerts === ref.false_alerts;
             S.engine = 'ready'; engineStatus(); setControls(); renderPatterns();
             call('sample_rows').then(r => { S.rows = r; renderData(); }).catch(() => {});
@@ -77,7 +77,7 @@ const APP = (() => {
   /* ---------------------------------------------------------------- URL state: rule, fraud and account survive a reload or a shared link */
   function readUrl() {
     const q = new URLSearchParams(location.search);
-    if (['10k', 'rev2', 'rev3'].includes(q.get('rule'))) S.preset = q.get('rule');
+    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule');
     if (['V1', 'V3'].includes(q.get('vis'))) S.vis = q.get('vis');
     if (q.get('fraud')) S.urlFraud = +q.get('fraud');
     if (q.get('acc')) S.urlAcc = q.get('acc');
@@ -103,8 +103,8 @@ const APP = (() => {
     $('#vis').setAttribute('aria-label', t('vis_label'));
     $('#nav').setAttribute('aria-label', t('nav_label'));
     $('#ask-in').placeholder = t('ask_ph');
-    const cap = { 'cap-main': ['fig', '1', 'res_main_h'], 'cap-role': ['fig', '2', 'res_role_h'], 'cap-pattern': ['fig', '3', 'res_pattern_h'],
-      'cap-speed': ['fig', '4', 'res_speed_h'], 'cap-k': ['fig', '5', 'res_k_h'], 'cap-flow': ['fig', '1', 'real_flow_h'], 'cap-ex': ['fig', '2', 'real_ex_h'],
+    const cap = { 'cap-main': ['fig', '1', 'res_main_h'], 'cap-time': ['fig', '2', 'res_time_h'], 'cap-role': ['fig', '3', 'res_role_h'], 'cap-pattern': ['fig', '4', 'res_pattern_h'],
+      'cap-speed': ['fig', '5', 'res_speed_h'], 'cap-k': ['fig', '6', 'res_k_h'], 'cap-flow': ['fig', '1', 'real_flow_h'], 'cap-ex': ['fig', '2', 'real_ex_h'],
       'cap-check': ['fig', '3', 'real_check_h'], 'cap-reach': ['fig', '4', 'real_reach_h'] };
     for (const id in cap) { const [k, n, h] = cap[id]; $('#' + id).innerHTML = `<span class="tag">${t(k)} ${n}</span>${esc(t(h))}`; }
     engineStatus(); renderStory(); renderPatterns(); renderSim(); renderData(); renderSources();
@@ -127,17 +127,17 @@ const APP = (() => {
   function renderStory() {
     if (!S.thesis) return;
     const m = S.thesis.main_E;
-    $('#p1').innerHTML = t('p1', { a: pct(m.ten_k.precision, 0), b: `<mark>${pct(m.rev3_V3.precision, 0)}</mark>` }) +
+    $('#p1').innerHTML = t('p1', { a: pct(m.ten_k.precision, 0), b: `<mark>${pct(m.rev4_V3.precision, 0)}</mark>` }) +
       ` <a class="cite" href="#results">${esc(t('cite_b1'))}</a>`;
-    const k = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3']];
+    const k = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3'], ['rev4_V3', 'key_rev4']];
     if ($('#kpis')) $('#kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('key_tbl'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('key_found')}</th><th scope="col" class="n">${t('key_prec')}</th></tr></thead><tbody>` +
-      k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev3_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
+      k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev4_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
     const c = S.thesis.real.check_90d;
     $('#key-real').textContent = t('key_real', { g3: pct(c.G3.either, 0), g0: pct(c['grade 0'].either, 0) });
     $('#ba-bars').style.setProperty('--guide', `${(100 * m.ten_k.recall).toFixed(1)}%`);
-    $('#ba-bars').innerHTML = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3']].map(([key, lab]) =>
-      `<div class="bar-row${key === 'rev3_V3' ? ' lead' : ''}"><span class="name">${esc(t(lab))}</span><span class="track" aria-hidden="true"><i style="width:${(100 * m[key].recall).toFixed(1)}%"></i></span><span class="val">${pct(m[key].recall, 0)}</span></div>`).join('');
-    $('#hero-lede').innerHTML = t('hero_lede', { a: `<mark>${pct(m.ten_k.recall, 0)}</mark>`, b: `<mark>${pct(m.rev3_V3.recall, 0)}</mark>` });
+    $('#ba-bars').innerHTML = [['ten_k', 'key_rule10'], ['rev4_V3', 'key_rev4']].map(([key, lab]) =>
+      `<div class="bar-row${key === 'rev4_V3' ? ' lead' : ''}"><span class="name">${esc(t(lab))}</span><span class="track" aria-hidden="true"><i style="width:${(100 * m[key].recall).toFixed(1)}%"></i></span><span class="val">${pct(m[key].recall, 0)}</span></div>`).join('');
+    $('#hero-lede').innerHTML = t('hero_lede', { a: `<mark>${pct(m.ten_k.recall, 0)}</mark>`, b: `<mark>${pct(m.rev4_V3.recall, 0)}</mark>`, days: S.thesis.headline.days, reached: pct(S.thesis.headline.accounts_reached, 0) });
     renderHero(); renderWorldPreview();
   }
   // the hero: one fraud of world 2027, switched between the €10k rule and the grades
@@ -167,9 +167,9 @@ const APP = (() => {
   }
   function renderWorldPreview() {
     if (!S.def) return;
-    const m = defaultWorldModel('rev3', 'V3'), w = S.def.world;
+    const m = defaultWorldModel('rev4', 'V3'), w = S.def.world;
     const cv = $('#world-preview');
-    WORLD.draw(cv, m, { preset: 'rev3', t });
+    WORLD.draw(cv, m, { preset: 'rev4', t });
     cv.setAttribute('aria-label', t('world_label', { frauds: w.frauds.length, seed: w.seed, n: m.accs.length, shared: m.shared.length }));
     $('#world-lead').textContent = t('world_lead', { frauds: w.frauds.length, n: num(m.accs.length), shared: m.shared.length });
     $('#close-facts').innerHTML = [[w.frauds.length, 'facts_frauds'], [num(w.n_accounts), 'facts_accounts'], [num(w.n_rows), 'facts_pairs'], [m.shared.length, 'facts_shared']]
@@ -343,7 +343,7 @@ const APP = (() => {
     const ruleName = custom ? t('custom_rule') : t('preset_' + S.preset);
     const row = (name, rec, found, prec, fa, hl) => `<tr${hl ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(name)}</th><td class="n">${hl ? `<mark>${rec}</mark>` : rec}</td><td class="n">${found}</td><td class="n">${prec}</td><td class="n">${fa}</td></tr>`;
     const other = S.preset === '10k'
-      ? row(t('strip_rev3'), pct(m.rev3_V3.recall, 0), '–', pct(m.rev3_V3.precision, 0), '–', false)
+      ? row(t('strip_rev4'), pct(m.rev4_V3.recall, 0), '–', pct(m.rev4_V3.precision, 0), '–', false)
       : row(t('met_vs10k'), pct(ten.recall, 0), `${ten.found} / ${ten.involved}`, pct(ten.precision, 0), ten.false_alerts, false);
     $('#strip').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('met_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('met_found')}</th><th scope="col" class="n">${t('col_accounts')}</th><th scope="col" class="n">${t('met_prec')}</th><th scope="col" class="n">${t('met_fa')}</th></tr></thead><tbody>` +
       row(ruleName, pct(sel.recall, 0), `${sel.found} / ${sel.involved}`, pct(sel.precision, 0), sel.false_alerts, true) + other + '</tbody></table>';
@@ -403,7 +403,7 @@ const APP = (() => {
   }
 
   /* ---------------------------------------------------------------- results (charts, each with a text table) */
-  const C = { r3: '#c0601f', r2: '#efbd8f', k10: '#9aa3ab', red: '#8f3a10' };
+  const C = { r3: '#c0601f', r2: '#efbd8f', k10: '#9aa3ab', red: '#8f3a10', r4: '#c0601f', r3b: '#5b7a99' };
   function srTable(canvas, cfg) {
     const old = canvas.parentNode.querySelector('div.sr-only'); if (old) old.remove();
     const d = cfg.data, fmt = cfg.fmt || (v => v === null || v === undefined ? '–' : (+v).toFixed(1) + (cfg.unit === undefined ? ' %' : cfg.unit));
@@ -446,24 +446,36 @@ const APP = (() => {
     Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452';
     const m = S.thesis.main_E;
     const L = { ten_k: t('preset_10k'), rev2_V1: `${t('preset_rev2')} (${t('vis_v1').toLowerCase()})`, rev2_V3: `${t('preset_rev2')} (${t('vis_v3').toLowerCase()})`,
-      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})` };
+      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})`,
+      rev4_V1: `${t('preset_rev4')} (${t('vis_v1').toLowerCase()})`, rev4_V3: `${t('preset_rev4')} (${t('vis_v3').toLowerCase()})` };
     const ks = Object.keys(L);
-    const rows = ks.concat(['rev2_V3_G3', 'rev3_V3_G3']);
-    const lab = (k) => L[k] || (k.startsWith('rev2') ? `${t('preset_rev2')}, G3` : `${t('preset_rev3')}, G3`);
+    const rows = ks.concat(['rev2_V3_G3', 'rev3_V3_G3', 'rev4_V3_G3']);
+    const lab = (k) => L[k] || `${t('preset_' + k.slice(0, 4))}, G3`;
     const ci = (lo, hi) => `<span class="ci">(${(100 * lo).toFixed(0)} ${t('to')} ${(100 * hi).toFixed(0)})</span>`;
     $('#res-table').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('res_table_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('col_rec')}</th><th scope="col" class="n">${t('col_prec')}</th><th scope="col" class="n">${t('col_val')}</th><th scope="col" class="n">${t('col_fa')}</th></tr></thead><tbody>` +
-      rows.map(k => `<tr${k === 'rev3_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev3_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2)}</td></tr>`).join('') + '</tbody></table>';
+      rows.map(k => `<tr${k === 'rev4_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev4_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2)}</td></tr>`).join('') + '</tbody></table>';
     chart('ch-main', { type: 'bar', data: { labels: ks.map(k => L[k]), datasets: [
       { label: t('col_rec'), data: ks.map(k => 100 * m[k].recall), backgroundColor: C.r3 },
       { label: t('col_prec'), data: ks.map(k => 100 * m[k].precision), backgroundColor: C.r2 }] },
       aspect: window.innerWidth < 600 ? 0.8 : 1.25,
       options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
+    const cv = S.thesis.curve || [], days = [7, 30, 90, 365];
+    const cser = (bl, det, k) => days.map(d => { const x = cv.find(y => y.blacklist === bl && y.detector === det && y.days === d); return x ? 100 * x[k] : null; });
+    const dl = days.map(d => d === 365 ? t('time_end') : `τ + ${d} ${t('tau_days')}`);
+    chart('ch-time', { type: 'line', data: { labels: dl, datasets: [
+      { label: `${t('preset_rev4')} G2, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G2+', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
+      { label: `${t('preset_rev4')} G2, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G2+', 'precision'), borderColor: C.r4, backgroundColor: C.r4, borderDash: [6, 4], borderWidth: 2 },
+      { label: `${t('preset_rev4')} G3, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G3', 'recall'), borderColor: C.red, backgroundColor: C.red, borderWidth: 3 },
+      { label: `${t('preset_rev4')} G3, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G3', 'precision'), borderColor: C.red, backgroundColor: C.red, borderDash: [6, 4], borderWidth: 2 },
+      { label: `${t('preset_10k')}, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'B0 10k per exchange', 'recall'), borderColor: C.k10, backgroundColor: C.k10, borderWidth: 3 }] },
+      options: { scales: { y: pctAxis }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
     const br = S.thesis.by_role_E;
     const rl = [['own account (SELF)', t('roles').SELF], ['mule', t('roles').MULE], ['mule, without T7', t('roles').MULE + ' (≠T7)'], ['facilitator', t('roles').FACILITATOR], ['all involved', t('all_involved')]];
     const three = (src, keys) => [
       { label: t('preset_10k'), data: keys.map(x => 100 * src(x).ten_k), backgroundColor: C.k10 },
       { label: t('preset_rev2'), data: keys.map(x => 100 * src(x).rev2), backgroundColor: C.r2 },
-      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3 }];
+      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3b },
+      { label: t('preset_rev4'), data: keys.map(x => 100 * src(x).rev4), backgroundColor: C.r4 }];
     chart('ch-role', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 1.25, data: { labels: rl.map(x => x[1]), datasets: three(x => br[x], rl.map(x => x[0])) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
     const bp = S.thesis.by_pattern_E, pk = Object.keys(bp);
     chart('ch-pattern', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 2.4, data: { labels: pk.map(k => patName(k)), datasets: three(k => bp[k], pk) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
@@ -603,7 +615,7 @@ const APP = (() => {
     S.lang = saved || ((navigator.language || '').toLowerCase().startsWith('fr') ? 'fr' : 'en');
     readUrl(); wire(); route();
     const [th, def] = await Promise.all([fetch('data/thesis.json').then(r => r.json()), fetch('data/world_default.json').then(r => r.json())]);
-    S.thesis = th; S.def = def; S.world = def.world; S.world.params = {};
+    S.thesis = th; S.def = def; S.world = def.world; S.world.params = def.world.params || {};
     if (S.urlAcc) { S.selected = S.urlAcc; S.urlAcc = undefined; }
     applyLang();
     await regrade(false);

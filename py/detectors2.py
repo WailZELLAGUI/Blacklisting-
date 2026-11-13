@@ -42,6 +42,14 @@ class Rule:
     # revision 2 (declared after test worlds C, evaluated on fresh worlds D)
     sigma_g1: float | None = None  # fixed G1 floor (1%); `sigma` then becomes the G2 share requirement
     ms_floor: float = 0.01         # second-seed floor, chosen on calibration worlds
+    # revision 4 (supervisor review, 12 Nov 2026): the amount branch is X >= 10k only, without 'or the whole fraud'
+    whole_fraud: bool = True
+
+
+def amount_ok(Xv, df, p) -> np.ndarray:
+    """Amount branch: X >= min(10k, known fraud total) (revisions 1-3) or X >= 10k (revision 4)."""
+    floor = np.minimum(THETA, df.F_known.values) if getattr(p, "whole_fraud", True) else THETA
+    return Xv >= floor
 
 
 def ms_column(p: Rule) -> str:
@@ -61,7 +69,7 @@ def _parts(df: pd.DataFrame, p: Rule, vis: str):
     Xv = df[f"X_{vis}"].values
     sig = Xv / df.out2.values
     x_ok = df.X.values >= p.x_min
-    theta_b = Xv >= np.minimum(THETA, df.F_known.values)
+    theta_b = amount_ok(Xv, df, p)
     s_g1 = p.sigma if p.sigma_g1 is None else p.sigma_g1
     g1a = ((sig >= s_g1) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
     share2 = ((sig >= max(p.sigma, s_g1)) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
@@ -122,7 +130,7 @@ def calibrate(df: pd.DataFrame, vis: str = "V3", target_precision: float = 0.90,
     # rows that can never reach G2 do not change the result: drop them once
     Xv = df[f"X_{vis}"].values
     sig_all = Xv / df.out2.values
-    theta_all = Xv >= np.minimum(THETA, df.F_known.values)
+    theta_all = amount_ok(Xv, df, base)
     conv_all = df[f"conv_{vis}"].values == 1
     nv_all = (df.v.values == 0) if base.use_v else np.ones(len(df), bool)
     smin = min(grid["sigma"]) if "sigma" in keys else base.sigma
