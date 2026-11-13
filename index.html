@@ -49,7 +49,7 @@
       <figure class="stage crop" style="margin:0">
         <div class="stage-sheet">
           <div class="stage-bar">
-            <div class="seg" id="hero-rule" role="group" aria-label="Rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev3" aria-pressed="true" data-i18n="hero_grades"></button></div>
+            <div class="seg" id="hero-rule" role="group" aria-label="Rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev4" aria-pressed="true" data-i18n="hero_grades"></button></div>
             <span class="note" id="hero-caption"></span>
           </div>
           <svg id="hero-net" class="net" viewBox="0 0 900 470" role="img" aria-label=""></svg>
@@ -138,7 +138,7 @@
 
     <div class="rulebar">
       <span class="lbl" id="lbl-rule" data-i18n="rule_h"></span>
-      <div class="seg" id="presets" role="group" aria-labelledby="lbl-rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev2" data-i18n="preset_rev2"></button><button type="button" data-preset="rev3" data-i18n="preset_rev3"></button></div>
+      <div class="seg" id="presets" role="group" aria-labelledby="lbl-rule"><button type="button" data-preset="10k" data-i18n="preset_10k"></button><button type="button" data-preset="rev2" data-i18n="preset_rev2"></button><button type="button" data-preset="rev3" data-i18n="preset_rev3"></button><button type="button" data-preset="rev4" data-i18n="preset_rev4"></button></div>
       <div class="seg" id="vis" role="group" aria-label="Visibility"><button type="button" data-vis="V1" data-i18n="vis_v1"></button><button type="button" data-vis="V3" data-i18n="vis_v3"></button></div>
     </div>
     <p class="note visnote" data-i18n="vis_note"></p>
@@ -207,9 +207,9 @@
           <label class="field" id="lab-spread"><span data-i18n="world_spread"></span> <b class="v" id="v-spread"></b><input type="range" id="sl-spread" min="0" max="0.8" step="0.1" value="0.2"></label>
           <label class="field"><span data-i18n="world_cex"></span> <b class="v" id="v-cex"></b><input type="range" id="sl-cex" min="0.1" max="1" step="0.05" value="0.3"></label>
           <label class="field"><span data-i18n="world_blacklist"></span>
-            <select id="sel-blacklist"><option value="old" data-i18n="bl_old"></option><option value="alert" data-i18n="bl_alert"></option><option value="freeze" data-i18n="bl_freeze"></option></select></label>
+            <select id="sel-blacklist"><option value="old" data-i18n="bl_old"></option><option value="alert" data-i18n="bl_alert" selected></option><option value="freeze" data-i18n="bl_freeze"></option></select></label>
           <label class="field"><span data-i18n="world_eval"></span>
-            <select id="sel-eval"><option value="end" data-i18n="eval_end"></option><option value="1" data-i18n="eval_1"></option><option value="7" data-i18n="eval_7"></option><option value="30" data-i18n="eval_30"></option><option value="90" data-i18n="eval_90"></option></select></label>
+            <select id="sel-eval"><option value="end" data-i18n="eval_end"></option><option value="1" data-i18n="eval_1"></option><option value="7" data-i18n="eval_7"></option><option value="30" data-i18n="eval_30"></option><option value="90" data-i18n="eval_90" selected></option></select></label>
           <p class="note" data-i18n="eval_note"></p>
           <fieldset><legend data-i18n="world_patterns"></legend><div id="pat-boxes" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:0 var(--space-md)"></div></fieldset>
           <p style="margin-top:var(--space-md)"><button class="btn btn--primary" type="button" id="new-world" data-i18n="world_new"></button></p>
@@ -230,8 +230,10 @@
   <div class="container" style="padding-bottom:var(--section-gap-s)">
     <header class="vhead"><h1 id="h-res" data-i18n="res_h"></h1><p class="lead" data-i18n="res_intro"></p></header>
     <div class="tablewrap" id="res-table"></div>
+    <p class="note" data-i18n="res_rev3_note"></p>
     <div class="figs">
       <figure class="fig"><figcaption><b id="cap-main"></b><span data-i18n="res_main_p"></span></figcaption><div class="chart"><canvas id="ch-main" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
+      <figure class="fig"><figcaption><b id="cap-time"></b><span data-i18n="res_time_p"></span></figcaption><div class="chart"><canvas id="ch-time" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig"><figcaption><b id="cap-role"></b></figcaption><div class="chart"><canvas id="ch-role" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig wide"><figcaption><b id="cap-pattern"></b></figcaption><div class="chart"><canvas id="ch-pattern" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig"><figcaption><b id="cap-speed"></b><span data-i18n="res_speed_p"></span></figcaption><div class="chart"><canvas id="ch-speed" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>

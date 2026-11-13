@@ -40,6 +40,19 @@ Two settings about the fraudster's collector wallet come from our BigQuery data 
 - when there is a collector, the trace stops there for 8.9% of frauds (26 of 293 seeds, 95% CI 5.8-12.3%;
   7.1% to 9.3% for any cutoff from 50% to 99%). Such a collector is drawn dashed, "Collector not traced".
 
+## Headline results (since 13 Nov 2026)
+
+The Results page and the opening paragraph now use the measured blacklisting dates: 20 test worlds, early-warning
+list (ScamSniffer timing), each fraud graded 90 days after blacklisting, when 9 in 10 of the accounts it pays have
+received money. Recall counts every account the fraud will ever pay. The default world 2027 uses the same settings.
+Figure 2 shows how the results grow from 7 days after blacklisting to the end of the simulated year.
+
+The lead rule is **revision 4**: revision 2 without the "or the whole fraud" amount branch, which added nothing
+(an account that receives the whole fraud already passes the share test). Revision 3 (fan-out route) stays
+available but is not the headline: it stays below 90 % precision, and on real data two exchange accounts paid by the
+same scammer are a median of 25 days apart, so its 6-hour route would rarely fire. The earlier headline (hand-set
+timing, end of a 180-day period) is kept in `data/thesis.json` as `main_E_handset`.
+
 ## Blacklisting date in every new world
 
 When a world is created you choose how fast the scam addresses are blacklisted, and when each fraud is graded:

@@ -107,7 +107,7 @@ def calibrate(df, vis="V3", target_precision=0.90, base: Rule3 = Rule3(), grid=N
     npos = pos_all.sum()
     Xv = df[f"X_{vis}"].values
     sig_all = Xv / df.out2.values
-    theta_all = Xv >= np.minimum(THETA, df.F_known.values)
+    theta_all = D2.amount_ok(Xv, df, base)
     conv_all = df[f"conv_{vis}"].values == 1
     nv_all = (df.v.values == 0) if base.use_v else np.ones(len(df), bool)
     g1floor = base.sigma_g1 if base.sigma_g1 is not None else min(grid["sigma"])

@@ -1,6 +1,698 @@
 {
  "main_E": {
   "ten_k": {
+   "precision": 0.5376,
+   "prec_lo": 0.4607,
+   "prec_hi": 0.6155,
+   "recall": 0.0768,
+   "rec_lo": 0.0616,
+   "rec_hi": 0.0945,
+   "value_recall": 0.5103,
+   "fp_per_fraud": 0.2075
+  },
+  "rev2_V1": {
+   "precision": 0.8686,
+   "prec_lo": 0.8311,
+   "prec_hi": 0.899,
+   "recall": 0.1894,
+   "rec_lo": 0.1658,
+   "rec_hi": 0.2153,
+   "value_recall": 0.4913,
+   "fp_per_fraud": 0.09
+  },
+  "rev2_V3": {
+   "precision": 0.8839,
+   "prec_lo": 0.8539,
+   "prec_hi": 0.9101,
+   "recall": 0.3394,
+   "rec_lo": 0.3056,
+   "rec_hi": 0.3756,
+   "value_recall": 0.633,
+   "fp_per_fraud": 0.14
+  },
+  "rev3_V1": {
+   "precision": 0.8542,
+   "prec_lo": 0.8034,
+   "prec_hi": 0.894,
+   "recall": 0.2845,
+   "rec_lo": 0.2549,
+   "rec_hi": 0.314,
+   "value_recall": 0.5552,
+   "fp_per_fraud": 0.1525
+  },
+  "rev3_V3": {
+   "precision": 0.8836,
+   "prec_lo": 0.85,
+   "prec_hi": 0.9119,
+   "recall": 0.4895,
+   "rec_lo": 0.4468,
+   "rec_hi": 0.5307,
+   "value_recall": 0.7333,
+   "fp_per_fraud": 0.2025
+  },
+  "rev4_V1": {
+   "precision": 0.8964,
+   "prec_lo": 0.8633,
+   "prec_hi": 0.9271,
+   "recall": 0.1894,
+   "rec_lo": 0.1658,
+   "rec_hi": 0.2153,
+   "value_recall": 0.4913,
+   "fp_per_fraud": 0.0688
+  },
+  "rev4_V3": {
+   "precision": 0.8951,
+   "prec_lo": 0.8668,
+   "prec_hi": 0.9176,
+   "recall": 0.3394,
+   "rec_lo": 0.3056,
+   "rec_hi": 0.3756,
+   "value_recall": 0.633,
+   "fp_per_fraud": 0.125
+  },
+  "rev2_V3_G3": {
+   "precision": 0.988,
+   "prec_lo": 0.9724,
+   "prec_hi": 0.9985,
+   "recall": 0.263,
+   "rec_lo": 0.2319,
+   "rec_hi": 0.292,
+   "value_recall": 0.2885,
+   "fp_per_fraud": 0.01
+  },
+  "rev3_V3_G3": {
+   "precision": 0.9843,
+   "prec_lo": 0.9668,
+   "prec_hi": 0.9958,
+   "recall": 0.2738,
+   "rec_lo": 0.2423,
+   "rec_hi": 0.304,
+   "value_recall": 0.3034,
+   "fp_per_fraud": 0.0138
+  },
+  "rev4_V3_G3": {
+   "precision": 0.988,
+   "prec_lo": 0.9724,
+   "prec_hi": 0.9985,
+   "recall": 0.263,
+   "rec_lo": 0.2319,
+   "rec_hi": 0.292,
+   "value_recall": 0.2885,
+   "fp_per_fraud": 0.01
+  }
+ },
+ "headline": {
+  "blacklist": "alert",
+  "days": 90,
+  "accounts_reached": 0.905,
+  "worlds": 20,
+  "frauds": 800
+ },
+ "by_role_E": {
+  "own account (SELF)": {
+   "n": 737,
+   "ten_k": 0.1398,
+   "rev2": 0.5075,
+   "rev3": 0.5427,
+   "rev4": 0.5075
+  },
+  "own account, without T9": {
+   "n": 637,
+   "ten_k": 0.1586,
+   "rev2": 0.5871,
+   "rev3": 0.6232,
+   "rev4": 0.5871
+  },
+  "mule": {
+   "n": 1696,
+   "ten_k": 0.033,
+   "rev2": 0.2423,
+   "rev3": 0.4564,
+   "rev4": 0.2423
+  },
+  "mule, without T7": {
+   "n": 1053,
+   "ten_k": 0.0313,
+   "rev2": 0.3751,
+   "rev3": 0.5983,
+   "rev4": 0.3751
+  },
+  "facilitator": {
+   "n": 80,
+   "ten_k": 0.425,
+   "rev2": 0.85,
+   "rev3": 0.7,
+   "rev4": 0.85
+  },
+  "all involved": {
+   "n": 2513,
+   "ten_k": 0.0768,
+   "rev2": 0.3394,
+   "rev3": 0.4895,
+   "rev4": 0.3394
+  },
+  "paid accomplice (secondary)": {
+   "n": 1631,
+   "ten_k": 0.0141,
+   "rev2": 0.0196,
+   "rev3": 0.0258,
+   "rev4": 0.0184
+  }
+ },
+ "by_pattern_E": {
+  "T1": {
+   "ten_k": 0.3519,
+   "rev2": 0.6019,
+   "rev3": 0.5556,
+   "rev4": 0.6019
+  },
+  "T2": {
+   "ten_k": 0.3939,
+   "rev2": 0.6465,
+   "rev3": 0.6162,
+   "rev4": 0.6465
+  },
+  "T3": {
+   "ten_k": 0.0558,
+   "rev2": 0.5698,
+   "rev3": 0.6419,
+   "rev4": 0.5698
+  },
+  "T4": {
+   "ten_k": 0.0224,
+   "rev2": 0.3825,
+   "rev3": 0.5728,
+   "rev4": 0.3825
+  },
+  "T5": {
+   "ten_k": 0.0406,
+   "rev2": 0.3675,
+   "rev3": 0.6248,
+   "rev4": 0.3675
+  },
+  "T7": {
+   "ten_k": 0.0358,
+   "rev2": 0.0249,
+   "rev3": 0.224,
+   "rev4": 0.0249
+  },
+  "T8": {
+   "ten_k": 0.425,
+   "rev2": 0.85,
+   "rev3": 0.7,
+   "rev4": 0.85
+  },
+  "T9": {
+   "ten_k": 0.02,
+   "rev2": 0.0,
+   "rev3": 0.03,
+   "rev4": 0.0
+  }
+ },
+ "curve": [
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5633,
+   "recall": 0.0832,
+   "fp_per_fraud": 0.2025
+  },
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8808,
+   "recall": 0.388,
+   "fp_per_fraud": 0.165
+  },
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8912,
+   "recall": 0.6224,
+   "fp_per_fraud": 0.2387
+  },
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8864,
+   "recall": 0.388,
+   "fp_per_fraud": 0.1562
+  },
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.996,
+   "recall": 0.2977,
+   "fp_per_fraud": 0.0037
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "B0 10k per exchange",
+   "precision": 0.561,
+   "recall": 0.086,
+   "fp_per_fraud": 0.2112
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8911,
+   "recall": 0.3908,
+   "fp_per_fraud": 0.15
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.89,
+   "recall": 0.6244,
+   "fp_per_fraud": 0.2425
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9017,
+   "recall": 0.3908,
+   "fp_per_fraud": 0.1338
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9921,
+   "recall": 0.2996,
+   "fp_per_fraud": 0.0075
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5505,
+   "recall": 0.0867,
+   "fp_per_fraud": 0.2225
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8949,
+   "recall": 0.3828,
+   "fp_per_fraud": 0.1412
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8812,
+   "recall": 0.6112,
+   "fp_per_fraud": 0.2587
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9067,
+   "recall": 0.3828,
+   "fp_per_fraud": 0.1237
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9919,
+   "recall": 0.2933,
+   "fp_per_fraud": 0.0075
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5266,
+   "recall": 0.0867,
+   "fp_per_fraud": 0.245
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8933,
+   "recall": 0.3764,
+   "fp_per_fraud": 0.1412
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8761,
+   "recall": 0.5993,
+   "fp_per_fraud": 0.2662
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9061,
+   "recall": 0.3764,
+   "fp_per_fraud": 0.1225
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9904,
+   "recall": 0.2877,
+   "fp_per_fraud": 0.0088
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5235,
+   "recall": 0.0354,
+   "fp_per_fraud": 0.1013
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8389,
+   "recall": 0.1512,
+   "fp_per_fraud": 0.0912
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8696,
+   "recall": 0.2388,
+   "fp_per_fraud": 0.1125
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8426,
+   "recall": 0.1512,
+   "fp_per_fraud": 0.0887
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9965,
+   "recall": 0.1126,
+   "fp_per_fraud": 0.0013
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5356,
+   "recall": 0.0629,
+   "fp_per_fraud": 0.1713
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8411,
+   "recall": 0.2571,
+   "fp_per_fraud": 0.1525
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8668,
+   "recall": 0.3808,
+   "fp_per_fraud": 0.1837
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8522,
+   "recall": 0.2571,
+   "fp_per_fraud": 0.14
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.99,
+   "recall": 0.1974,
+   "fp_per_fraud": 0.0063
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5376,
+   "recall": 0.0768,
+   "fp_per_fraud": 0.2075
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8839,
+   "recall": 0.3394,
+   "fp_per_fraud": 0.14
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8836,
+   "recall": 0.4895,
+   "fp_per_fraud": 0.2025
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8951,
+   "recall": 0.3394,
+   "fp_per_fraud": 0.125
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.988,
+   "recall": 0.263,
+   "fp_per_fraud": 0.01
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5266,
+   "recall": 0.0867,
+   "fp_per_fraud": 0.245
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8917,
+   "recall": 0.3669,
+   "fp_per_fraud": 0.14
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8743,
+   "recall": 0.5285,
+   "fp_per_fraud": 0.2387
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.903,
+   "recall": 0.3669,
+   "fp_per_fraud": 0.1237
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9888,
+   "recall": 0.2817,
+   "fp_per_fraud": 0.01
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5455,
+   "recall": 0.0891,
+   "fp_per_fraud": 0.2313
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8792,
+   "recall": 0.3826,
+   "fp_per_fraud": 0.1638
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8912,
+   "recall": 0.5688,
+   "fp_per_fraud": 0.2162
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8898,
+   "recall": 0.3826,
+   "fp_per_fraud": 0.1475
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9972,
+   "recall": 0.2894,
+   "fp_per_fraud": 0.0025
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5349,
+   "recall": 0.0891,
+   "fp_per_fraud": 0.2412
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8876,
+   "recall": 0.3774,
+   "fp_per_fraud": 0.1487
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8814,
+   "recall": 0.5608,
+   "fp_per_fraud": 0.235
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9004,
+   "recall": 0.3774,
+   "fp_per_fraud": 0.13
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9958,
+   "recall": 0.2858,
+   "fp_per_fraud": 0.0037
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5322,
+   "recall": 0.0895,
+   "fp_per_fraud": 0.245
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8862,
+   "recall": 0.3721,
+   "fp_per_fraud": 0.1487
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8762,
+   "recall": 0.554,
+   "fp_per_fraud": 0.2437
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.9,
+   "recall": 0.3721,
+   "fp_per_fraud": 0.1288
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9944,
+   "recall": 0.2834,
+   "fp_per_fraud": 0.005
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "B0 10k per exchange",
+   "precision": 0.5162,
+   "recall": 0.0895,
+   "fp_per_fraud": 0.2612
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "Rev2 frozen V3 G2+",
+   "precision": 0.8852,
+   "recall": 0.3713,
+   "fp_per_fraud": 0.15
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "Rev3 V3 G2+",
+   "precision": 0.8709,
+   "recall": 0.5496,
+   "fp_per_fraud": 0.2537
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "Rev4 V3 G2+",
+   "precision": 0.8989,
+   "recall": 0.3713,
+   "fp_per_fraud": 0.13
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "Rev4 V3 G3",
+   "precision": 0.9943,
+   "recall": 0.2806,
+   "fp_per_fraud": 0.005
+  }
+ ],
+ "main_E_handset": {
+  "ten_k": {
    "precision": 0.6038,
    "prec_lo": 0.5297,
    "prec_hi": 0.6688,
@@ -69,92 +761,6 @@
    "rec_hi": 0.3576,
    "value_recall": 0.3229,
    "fp_per_fraud": 0.0238
-  }
- },
- "by_role_E": {
-  "own account (SELF)": {
-   "n": 733,
-   "ten_k": 0.1623,
-   "rev2": 0.5798,
-   "rev3": 0.6153
-  },
-  "own account, without T9": {
-   "n": 663,
-   "ten_k": 0.178,
-   "rev2": 0.641,
-   "rev3": 0.6742
-  },
-  "mule": {
-   "n": 1721,
-   "ten_k": 0.0593,
-   "rev2": 0.3271,
-   "rev3": 0.6281
-  },
-  "mule, without T7": {
-   "n": 1164,
-   "ten_k": 0.0498,
-   "rev2": 0.4485,
-   "rev3": 0.7491
-  },
-  "facilitator": {
-   "n": 89,
-   "ten_k": 0.3933,
-   "rev2": 0.7303,
-   "rev3": 0.573
-  },
-  "all involved": {
-   "n": 2543,
-   "ten_k": 0.1007,
-   "rev2": 0.4141,
-   "rev3": 0.6225
-  },
-  "paid accomplice (secondary)": {
-   "n": 1663,
-   "ten_k": 0.012,
-   "rev2": 0.0168,
-   "rev3": 0.0259
-  }
- },
- "by_pattern_E": {
-  "T1": {
-   "ten_k": 0.4059,
-   "rev2": 0.6832,
-   "rev3": 0.6238
-  },
-  "T2": {
-   "ten_k": 0.5048,
-   "rev2": 0.7619,
-   "rev3": 0.7333
-  },
-  "T3": {
-   "ten_k": 0.0525,
-   "rev2": 0.6039,
-   "rev3": 0.6718
-  },
-  "T4": {
-   "ten_k": 0.0631,
-   "rev2": 0.4523,
-   "rev3": 0.7405
-  },
-  "T5": {
-   "ten_k": 0.0378,
-   "rev2": 0.445,
-   "rev3": 0.757
-  },
-  "T7": {
-   "ten_k": 0.079,
-   "rev2": 0.0736,
-   "rev3": 0.3752
-  },
-  "T8": {
-   "ten_k": 0.3933,
-   "rev2": 0.7303,
-   "rev3": 0.573
-  },
-  "T9": {
-   "ten_k": 0.0143,
-   "rev2": 0.0,
-   "rev3": 0.0571
   }
  },
  "sweep_speed": [
@@ -505,6 +1111,96 @@
     "fan_k": 2,
     "fan_dt": 6,
     "fan_ratio": 2.0
+   }
+  },
+  "rev4": {
+   "V1": {
+    "sigma": 0.2,
+    "kappa": 0.7,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "whole_fraud": false
+   },
+   "V2": {
+    "sigma": 0.2,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "whole_fraud": false
+   },
+   "V3": {
+    "sigma": 0.15,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "whole_fraud": false
+   },
+   "V4": {
+    "sigma": 0.15,
+    "kappa": 0.5,
+    "pi": 0.9,
+    "delta": 24,
+    "mode": "OR",
+    "x_min": 100.0,
+    "sigma_dom": 0.1,
+    "amount_route": false,
+    "rep_months": 2,
+    "use_sigma": true,
+    "use_kappa": true,
+    "use_pi": true,
+    "use_v": true,
+    "use_dom": true,
+    "conv_entry": true,
+    "g3_rep": false,
+    "rep_route": false,
+    "sigma_g1": 0.01,
+    "ms_floor": 0.05,
+    "whole_fraud": false
    }
   }
  },
