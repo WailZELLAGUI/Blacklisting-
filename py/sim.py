@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field, replace
+from typing import Optional
 
 import numpy as np
 
@@ -26,6 +27,9 @@ NEGATIVE_ROLES = ("SERVICE", "P2P", "VICTIM", "DUST", "FRAMED", "BAIT", "LANDLOR
 import json as _json, os as _os
 _BLTE_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "blte_params.json")
 BLTE = _json.load(open(_BLTE_PATH)) if _os.path.exists(_BLTE_PATH) else None
+# measured blacklisting delays and pay-out lags (realdata/timing/build_timing_params.py)
+_TIMING_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "timing_params.json")
+TIMING = _json.load(open(_TIMING_PATH)) if _os.path.exists(_TIMING_PATH) else None
 
 
 @dataclass
@@ -102,6 +106,11 @@ class Config:
     split_random: bool = False            # draw split_spread and send_window_scale per fraud from the ranges below
     split_spread_range: tuple = (0.0, 0.8)
     send_window_scale_range: tuple = (1.0 / 24.0, 7.0)   # mule window from 1 h to 7 days (log-uniform)
+    # ---- blacklisting date and pay-out timing ----
+    # "old"   : hand-set (revisions 1-4): collection 2-10 days, tau 0-10 days after it, payouts in one burst
+    # "alert" : measured on ScamSniffer seeds (early-warning list): delay and pay-out lags of one real seed
+    # "freeze": measured on Tether's USDT blacklist (late freeze): delay; pay-out lags as in "alert"
+    blacklist_model: str = "old"
 
     def with_(self, **kw) -> "Config":
         return replace(self, **kw)
@@ -125,6 +134,7 @@ class World:
     plus2: list = field(default_factory=list)       # onward payments from own accounts (+2)
     self_accounts: dict = field(default_factory=dict)  # seed -> list of own-account ids
     p_collector: float = 0.0                           # value used in this world (drawn if cfg.p_collector_range)
+    trng: Optional[np.random.Generator] = None         # separate stream for measured timing draws
     _order: int = 0
 
     # ------------------------------------------------------------ helpers
@@ -242,9 +252,27 @@ def seed_transfer(world, s, aid, t, amount, detected=True, counted=True, rng=Non
     world.add_event(aid, t, "in_seed", amount, (s, detected))
     if counted:
         world.seeds[s]["out"] += amount
+        world.seeds[s].setdefault("out_ev", []).append((float(t), float(amount)))
     a = world.accounts[aid]
     if a.get("ramp") and rng is not None:      # ramp users cash out every deposit
         world.add_event(aid, t + rng.exponential(world.cfg.ramp_exit_mean_h), "exit_frac", 0.95, (None, "fiat"))
+
+
+def add_lump(world, s, amount):
+    """Money that leaves the seed through routes we do not follow (no time of its own: at evaluation it is
+    counted in proportion to the traced payments already made)."""
+    world.seeds[s]["out"] += amount
+    world.seeds[s]["out_lump"] = world.seeds[s].get("out_lump", 0.0) + amount
+
+
+def payout_shift(world, s):
+    """Hours added to one payment to an exchange account (handler, P2P buyer, accomplice, framed customer):
+    measured lag of a payment, minus the seed's first lag (alert / freeze). The measured lags cover every
+    deposit account the seed reached, not only handlers. Victim refunds already spread over t_col0..t_col1."""
+    lags = world.seeds[s].get("lags")
+    if not lags:
+        return 0.0
+    return (float(lags[int(world.trng.integers(len(lags)))]) - min(lags)) * DAY
 
 
 def mule_delay(rng, cfg):
@@ -322,7 +350,7 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
         detected = rng.random() >= cfg.p_cluster_miss
         world.seeds[s]["intermediary_detected"] = detected
         if not detected:
-            world.seeds[s]["out"] += budget          # one hop to an unclustered address
+            add_lump(world, s, budget)          # one hop to an unclustered address
     else:
         detected = True
     counted = detected
@@ -331,6 +359,7 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
     wsc = world.seeds[s].get("send_window_scale", cfg.send_window_scale)
 
     def send(aid, t, amt, kind):
+        t = t + payout_shift(world, s)
         seed_transfer(world, s, aid, t, amt, detected=detected, counted=counted)
         if kind == "cover":
             d = rng.exponential(cfg.cover_exit_mean_h)
@@ -348,7 +377,7 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
             aid, _ = make_handler(world, rng, s, "self", int(rng.integers(E)), "SELF", t_ref=t0)
         if cfg.self_share is not None:
             amt = world.seeds[s]["F"] * cfg.self_share
-            world.seeds[s]["out"] += max(budget - amt, 0.0)   # the rest leaves through untraced routes
+            add_lump(world, s, max(budget - amt, 0.0))   # the rest leaves through untraced routes
             send(aid, t0, amt, "self")
         else:
             send(aid, t0, budget, "self")
@@ -377,7 +406,8 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
         world.truth[(s, fac)] = "FACILITATOR"
         n = int(rng.integers(1, 4))
         for amt in split_amounts(rng, budget, n, spread):
-            seed_transfer(world, s, fac, t0 + rng.uniform(0, 72 * wsc), amt, detected=detected, counted=counted)
+            seed_transfer(world, s, fac, t0 + rng.uniform(0, 72 * wsc) + payout_shift(world, s), amt,
+                          detected=detected, counted=counted)
     elif typ == "T9":
         # slow monthly payments to the fraudster's own, normally active account
         iid = world.new_identity()
@@ -392,7 +422,7 @@ def distribute(world, rng, s, typ, budget, t0, k, collector=False):
             total += amt
             send(aid, t0 + m * 30 * DAY + rng.uniform(-2, 2) * DAY, amt, "self")
         if detected:
-            world.seeds[s]["out"] += max(budget - total, 0.0)   # the rest stays off-exchange
+            add_lump(world, s, max(budget - total, 0.0))   # the rest stays off-exchange
     else:
         raise ValueError(typ)
 
@@ -405,6 +435,12 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         # child generator: the main random stream is unchanged, so worlds differ only in this value
         ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
         w.p_collector = float(np.random.default_rng(ss.spawn(1)[0]).uniform(*cfg.p_collector_range))
+    if cfg.blacklist_model != "old":
+        if TIMING is None:
+            raise FileNotFoundError(_TIMING_PATH)
+        # own stream: the rest of the world (amounts, accounts, patterns) is the same as with "old"
+        ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+        w.trng = np.random.default_rng(ss.spawn(1)[0])
     w.popular = [(f"pop{i}", rng.random() < cfg.p_popular_labelled) for i in range(cfg.n_popular_dest)]
     for ex in range(cfg.n_exchanges):
         for _ in range(cfg.n_services_per_exchange):
@@ -430,11 +466,27 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         t_dist = t_col1 + rng.uniform(0, 5) * DAY
         tau = t_col1 + rng.uniform(0, 10) * DAY
         F_known = F * rng.uniform(*cfg.F_known_frac)
+        lags = None
+        if cfg.blacklist_model != "old":
+            case = TIMING["alert"][int(w.trng.integers(len(TIMING["alert"])))]
+            lags = case["lags"]
+            if cfg.blacklist_model == "alert":
+                delay = case["delay"]
+            elif cfg.blacklist_model == "freeze":
+                fz = TIMING["freeze"][int(w.trng.integers(len(TIMING["freeze"])))]
+                delay = fz["delay"]
+                lo, hi = min(lags), max(lags)        # order of the pay-outs from the alert seed, in Tether's window
+                lags = [0.0 if hi == lo else (x - lo) / (hi - lo) * fz["out_span"] for x in lags]
+            else:
+                raise ValueError(cfg.blacklist_model)
+            tau = t_col0 + delay * DAY             # t_col0 = first money received by the seed
+            t_dist = t_col0 + min(lags) * DAY      # first pay-out; later ones are shifted by payout_shift
+            t_col1 = t_col0 + max(lags) * DAY
         w.seeds[s] = dict(seed=s, F=F, F_known=F_known, typology=typ, k=k, tau=tau,
-                          t_col0=t_col0, t_dist=t_dist, out=0.0)
+                          t_col0=t_col0, t_col1=t_col1, t_dist=t_dist, out=0.0, lags=lags)
         budget = F * rng.uniform(*cfg.handler_share)
         if cfg.cex_share < 1.0 and typ != "T9":
-            w.seeds[s]["out"] += budget * (1.0 - cfg.cex_share)   # leaves through routes outside our exchanges
+            add_lump(w, s, budget * (1.0 - cfg.cex_share))   # leaves through routes outside our exchanges
             budget *= cfg.cex_share
         collector = w.p_collector > 0 and rng.random() < w.p_collector
         w.seeds[s]["collector"] = bool(collector)
@@ -448,7 +500,7 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         for _ in range(int(rng.integers(0, 4))):
             aid = legit_account(w, rng)
             w.truth[(s, aid)] = "ACCOMPLICE"
-            seed_transfer(w, s, aid, rng.uniform(t_col0, t_dist + 10 * DAY), max(200.0, F * rng.uniform(0.01, 0.04)), rng=rng)
+            seed_transfer(w, s, aid, rng.uniform(t_col0, t_dist + 10 * DAY) + payout_shift(w, s), max(200.0, F * rng.uniform(0.01, 0.04)), rng=rng)
         # arm's-length services (shops, processors)
         for _ in range(int(rng.integers(1, 4))):
             aid = w.services[int(rng.integers(len(w.services)))]
@@ -460,7 +512,7 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
                 aid = legit_account(w, rng)
                 w.accounts[aid]["ramp"] = w.accounts[aid].get("ramp") or rng.random() < 0.5
                 w.truth[(s, aid)] = "P2P"
-                seed_transfer(w, s, aid, t_dist + rng.uniform(0, 10) * DAY, rng.uniform(*cfg.p2p_amount), rng=rng)
+                seed_transfer(w, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), rng.uniform(*cfg.p2p_amount), rng=rng)
         # victims who receive money back
         if rng.random() < cfg.p_inducement:
             blte = cfg.refund_model == "blte" and BLTE is not None
@@ -498,23 +550,23 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         if rng.random() < cfg.p_framing:
             aid = legit_account(w, rng)
             w.truth[(s, aid)] = "FRAMED"
-            seed_transfer(w, s, aid, t_dist + rng.uniform(0, 5) * DAY, F * rng.uniform(*cfg.framing_share), rng=rng)
+            seed_transfer(w, s, aid, t_dist + rng.uniform(0, 5) * DAY + payout_shift(w, s), F * rng.uniform(*cfg.framing_share), rng=rng)
         # monthly patterns (second test)
         if cfg.p_salary > 0 and rng.random() < cfg.p_salary:
             for _ in range(int(rng.integers(1, 4))):
                 aid = legit_account(w, rng)
                 w.truth[(s, aid)] = "ACCOMPLICE"
-                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY, cfg.salary_amount)
+                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.salary_amount)
         if cfg.p_bait > 0 and rng.random() < cfg.p_bait:
             for _ in range(int(rng.integers(1, 4))):
                 aid = legit_account(w, rng)
                 w.truth[(s, aid)] = "BAIT"
-                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY, cfg.bait_amount)
+                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.bait_amount)
         if cfg.p_landlord > 0 and rng.random() < cfg.p_landlord:
             aid = legit_account(w, rng)
             w.accounts[aid]["ramp"] = False
             w.truth[(s, aid)] = "LANDLORD"
-            monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY, cfg.rent_amount)
+            monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.rent_amount)
         # second step: the fraudster's own account pays accomplices onwards (+2)
         if cfg.p_plus2 > 0 and s in w.self_accounts and rng.random() < cfg.p_plus2:
             plus2_payments(w, rng, s, t_dist)

@@ -29,6 +29,7 @@ The spacing scale, the type scale, the easings and the durations are the scaffol
 - Mistakes: an innocent account flagged gets a dashed `--color-error` ring; an involved account missed gets a solid ink ring.
 - The blacklisted address is an ink disc with a paper cross; a collector is a muted square, dashed and marked "not traced" when the trace stops there.
 - In the whole world, an account paid by two frauds or more gets a `--g2` ring; hovering lights its links in the accent.
+- The whole-world view is live: nodes can be dragged, the paper zoomed and panned; labels appear as you zoom in. The layout settles on its own and never loops; under reduced motion it is drawn settled.
 
 ## Controls
 - Primary: orange fill (`--color-accent`), ink text, 1px ink border with a second rule inset 2px, 2px radius, 48px tall. One per view.

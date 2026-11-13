@@ -10,8 +10,9 @@ import detectors2 as D2
 import detectors3 as D3
 from configs import TEST3_CFG
 from detectors import b0, labels, score
+from evaltime import candidate_table_at
 from features import candidate_table
-from sim import NEGATIVE_ROLES, POSITIVE_ROLES, generate_world
+from sim import DAY, NEGATIVE_ROLES, POSITIVE_ROLES, generate_world
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RULES = json.load(open(os.path.join(HERE, "rules.json")))
@@ -22,7 +23,7 @@ STATE = {}
 WORLD_KEYS = {
     "n_seeds": int, "k_min": int, "k_max": int, "split_spread": float, "mule_window_h": float,
     "cex_share": float, "p_collector": float, "p_cluster_miss": float, "p_framing": float, "p_p2p": float, "p_landlord": float,
-    "typologies": list,
+    "typologies": list, "blacklist": str, "eval_days": float,
 }
 
 
@@ -47,9 +48,20 @@ def new_world(params="{}"):
     if "p_collector" in p:
         kw["p_collector_range"] = None          # a fixed value chosen by the visitor replaces the per-world draw
     if p.get("typologies"): kw["typologies"] = tuple(p["typologies"])
+    # blacklisting speed: "old" (hand-set timing, 180 days), "alert" (ScamSniffer) or "freeze" (Tether), measured
+    bl = p.get("blacklist", "old")
+    if bl not in ("old", "alert", "freeze"):
+        bl = "old"
+    if bl != "old":
+        kw["blacklist_model"] = bl
+        kw["horizon_days"] = 365.0
     cfg = TEST3_CFG.with_(**kw)
     w = generate_world(cfg, np.random.default_rng(seed))
-    df = D2.add_ms_columns(candidate_table(w, world_id=seed)).reset_index(drop=True)
+    ev = p.get("eval_days")                   # grade each fraud at tau + eval_days (None: end of the horizon)
+    if ev is None:
+        df = D2.add_ms_columns(candidate_table(w, world_id=seed)).reset_index(drop=True)
+    else:
+        df = candidate_table_at(w, float(ev) * DAY, world_id=seed).reset_index(drop=True)
     STATE.clear()
     STATE.update(w=w, df=df, seed=seed, cfg=cfg, params=p)
     roles = df.role.value_counts().to_dict()
@@ -67,7 +79,8 @@ def new_world(params="{}"):
                                          cex_share=cfg.cex_share, p_collector=_f(w.p_collector, 3),
                                          p_collector_range=list(cfg.p_collector_range) if cfg.p_collector_range else None,
                                          p_cluster_miss=cfg.p_cluster_miss,
-                                         typologies=list(cfg.typologies))))
+                                         typologies=list(cfg.typologies), blacklist=bl,
+                                         horizon_days=cfg.horizon_days, eval_days=ev)))
 
 
 def _rule(spec):
