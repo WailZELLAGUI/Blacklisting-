@@ -37,6 +37,19 @@ Two settings about the fraudster's collector wallet come from our BigQuery data 
 - when there is a collector, the trace stops there for 8.9% of frauds (26 of 293 seeds, 95% CI 5.8-12.3%;
   7.1% to 9.3% for any cutoff from 50% to 99%). Such a collector is drawn dashed, "Collector not traced".
 
+## Blacklisting date in every new world
+
+When a world is created you choose how fast the scam addresses are blacklisted, and when each fraud is graded:
+
+- **hand-set** (earlier results, 180 days): blacklisted 2 to 20 days after the first money, payments in one burst;
+- **early-warning list**, measured on 551 ScamSniffer scam addresses (Jul 2022 - Feb 2023): blacklisted a median
+  6 days after the first money, and most payments to exchange accounts come after that date (365 days simulated);
+- **late freeze**, measured on 261 addresses frozen by Tether (USDT, 2023): a median 26 days after the first money,
+  once most of it has already left (365 days simulated).
+
+Grading at 1, 7, 30 or 90 days after blacklisting uses only the money moved by then; the counts are then over the
+accounts already reached. The Real data page compares the measured delays with the simulator (table C-5, figure C-4).
+
 ## Run locally
 
 ```

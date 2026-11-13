@@ -103,7 +103,7 @@ const APP = (() => {
     $('#ask-in').placeholder = t('ask_ph');
     const cap = { 'cap-main': ['fig', 'B-1', 'res_main_h'], 'cap-role': ['fig', 'B-2', 'res_role_h'], 'cap-pattern': ['fig', 'B-3', 'res_pattern_h'],
       'cap-speed': ['fig', 'B-4', 'res_speed_h'], 'cap-k': ['fig', 'B-5', 'res_k_h'], 'cap-flow': ['fig', 'C-1', 'real_flow_h'], 'cap-ex': ['fig', 'C-2', 'real_ex_h'],
-      'cap-check': ['fig', 'C-3', 'real_check_h'] };
+      'cap-check': ['fig', 'C-3', 'real_check_h'], 'cap-reach': ['fig', 'C-4', 'real_reach_h'] };
     for (const id in cap) { const [k, n, h] = cap[id]; $('#' + id).textContent = `${t(k)} ${n} · ${t(h)}`; }
     engineStatus(); renderStory(); renderPatterns(); renderSim(); renderData(); renderSources();
     if (S.chartsDrawn) { renderResults(); renderReal(); }
@@ -146,7 +146,7 @@ const APP = (() => {
   function setControls() {
     const ready = S.engine === 'ready';
     const tuneOff = S.preset === '10k';
-    ['#new-world', '#sl-frauds', '#sl-kmin', '#sl-kmax', '#sel-window', '#sl-spread', '#sl-cex']
+    ['#new-world', '#sl-frauds', '#sl-kmin', '#sl-kmax', '#sel-window', '#sl-spread', '#sl-cex', '#sel-blacklist', '#sel-eval']
       .forEach(q => { $(q).disabled = !ready || S.busy; });
     ['#sl-sigma', '#sl-kappa', '#sl-pi', '#cb-fan', '#sl-fank', '#sl-fandt', '#sl-fanr', '#reset']
       .forEach(q => { $(q).disabled = !ready || S.busy || tuneOff; });
@@ -310,6 +310,8 @@ const APP = (() => {
     const p = { n_seeds: +$('#sl-frauds').value, k_min: +$('#sl-kmin').value, k_max: +$('#sl-kmax').value, cex_share: +$('#sl-cex').value,
       typologies: $$('#pat-boxes input:checked').map(i => i.value) };
     if (!p.typologies.length) p.typologies = ['T4'];
+    p.blacklist = $('#sel-blacklist').value;
+    if ($('#sel-eval').value !== 'end') p.eval_days = +$('#sel-eval').value;
     const w = $('#sel-window').value;
     if (w !== 'random') { p.mule_window_h = +w; p.split_spread = +$('#sl-spread').value; }
     return p;
@@ -425,6 +427,22 @@ const APP = (() => {
     $('#real-g3').innerHTML = `<table class="t"><caption>${t('tbl')} C-4 · ${esc(t('real_g3_h'))}</caption><thead><tr><th scope="col">${t('col_addr')}</th><th scope="col">${t('col_ex')}</th><th scope="col" class="n">${t('col_x')}</th><th scope="col" class="n">${t('col_seeds')}</th><th scope="col" class="n">${t('col_kappa1')}</th></tr></thead><tbody>` +
       r.g3_examples.map(g => `<tr><td><a href="https://etherscan.io/address/${esc(g.address)}" target="_blank" rel="noopener">${esc(g.address.slice(0, 10))}…${esc(g.address.slice(-6))}<span class="sr-only"> (Etherscan)</span></a></td><td>${esc(g.exchange)}</td><td class="n">${eur(g.X)}</td><td class="n">${g.seeds}</td><td class="n">${pct(g.kappa, 0)}</td></tr>`).join('') + '</tbody></table>';
     $('#real-limits').innerHTML = t('real_limits').map(x => `<li>${esc(x)}</li>`).join('');
+    const tm = r.timing;
+    if (tm) {
+      const bk = ['before', '0-7', '8-30', '31-180', '>180'], cols = [['scamsniffer', t('tau_ss')], ['tether', t('tau_te')], ['old_sim', t('tau_old')]];
+      $('#real-tau').innerHTML = `<table class="t"><caption>${t('tbl')} C-5 · ${esc(t('real_tau_h'))}</caption><thead><tr><th></th>${cols.map(c => `<th scope="col" class="n">${esc(c[1])}</th>`).join('')}</tr></thead><tbody>` +
+        `<tr><th scope="row" style="font-weight:500">${esc(t('tau_median'))}</th>${cols.map(c => `<td class="n">${tm[c[0]].median_delay} ${t('tau_days')}</td>`).join('')}</tr>` +
+        bk.map(k => `<tr><th scope="row" style="font-weight:500">${esc(t('tau_bucket')[k])}</th>${cols.map(c => `<td class="n">${pct(tm[c[0]].buckets[k] || 0, 0)}</td>`).join('')}</tr>`).join('') +
+        `<tr><th scope="row" style="font-weight:500">${esc(t('tau_gone'))}</th><td class="n">–</td><td class="n">${pct(tm.tether.gone_before, 0)}</td><td class="n">–</td></tr>` +
+        `<tr><td colspan="4" class="note">${esc(t('tau_n', { s: tm.scamsniffer.seeds, a: tm.tether.addresses }))}</td></tr></tbody></table>`;
+      const ds = [0, 7, 30];
+      chart('ch-reach', { type: 'bar', data: { labels: ds.map(d => d ? `τ + ${d} ${t('tau_days')}` : 'τ'), datasets: [
+        { label: t('reach_real'), data: ds.map(d => 100 * tm.scamsniffer.reached[d]), backgroundColor: C.red },
+        { label: t('reach_alert'), data: ds.map(d => 100 * tm.sim_reached.alert[d]), backgroundColor: C.r3 },
+        { label: t('reach_freeze'), data: ds.map(d => 100 * tm.sim_reached.freeze[d]), backgroundColor: C.r2 },
+        { label: t('reach_old'), data: ds.map(d => 100 * tm.sim_reached.old[d]), backgroundColor: C.k10 }] },
+        options: { scales: { y: pctAxis, x: { grid: { display: false } } }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
+    }
   }
 
   /* ---------------------------------------------------------------- data explained, sources */

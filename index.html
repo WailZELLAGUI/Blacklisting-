@@ -115,6 +115,11 @@
         <select id="sel-window"><option value="random" data-i18n="window_random"></option><option value="1">1 h</option><option value="6">6 h</option><option value="24">24 h</option><option value="72">72 h</option><option value="168">7 d</option></select></label>
       <label class="field" id="lab-spread"><span data-i18n="world_spread"></span> <b class="v" id="v-spread"></b><input type="range" id="sl-spread" min="0" max="0.8" step="0.1" value="0.2"></label>
       <label class="field"><span data-i18n="world_cex"></span> <b class="v" id="v-cex"></b><input type="range" id="sl-cex" min="0.1" max="1" step="0.05" value="0.3"></label>
+      <label class="field"><span data-i18n="world_blacklist"></span>
+        <select id="sel-blacklist"><option value="old" data-i18n="bl_old"></option><option value="alert" data-i18n="bl_alert"></option><option value="freeze" data-i18n="bl_freeze"></option></select></label>
+      <label class="field"><span data-i18n="world_eval"></span>
+        <select id="sel-eval"><option value="end" data-i18n="eval_end"></option><option value="1" data-i18n="eval_1"></option><option value="7" data-i18n="eval_7"></option><option value="30" data-i18n="eval_30"></option><option value="90" data-i18n="eval_90"></option></select></label>
+      <p class="note" data-i18n="eval_note"></p>
       <fieldset><legend data-i18n="world_patterns"></legend><div id="pat-boxes" class="pats"></div></fieldset>
       <p><button class="btn" id="new-world" data-i18n="world_new"></button></p>
       <div class="note" id="world-info" role="status" aria-live="polite"></div>
@@ -157,6 +162,8 @@
     <figure class="fig"><figcaption><b id="cap-check"></b><span data-i18n="real_check_p"></span></figcaption><div class="chart"><canvas id="ch-check"></canvas></div></figure>
     <div class="fig"><h2 class="sec" style="margin-top:0" data-i18n="real_fan_h"></h2><p id="real-fan" class="read"></p></div>
     <div class="fig wide"><div class="tablewrap" id="real-g3"></div></div>
+    <div class="fig wide"><div class="tablewrap" id="real-tau"></div><p class="note" data-i18n="real_tau_p"></p></div>
+    <figure class="fig wide"><figcaption><b id="cap-reach"></b><span data-i18n="real_reach_p"></span></figcaption><div class="chart"><canvas id="ch-reach"></canvas></div></figure>
   </div>
   <div class="limits"><h2 data-i18n="real_limits_h"></h2><ul id="real-limits"></ul></div>
 </section>
