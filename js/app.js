@@ -105,7 +105,7 @@ const APP = (() => {
     $('#ask-in').placeholder = t('ask_ph');
     const cap = { 'cap-main': ['fig', '1', 'res_main_h'], 'cap-role': ['fig', '2', 'res_role_h'], 'cap-pattern': ['fig', '3', 'res_pattern_h'],
       'cap-speed': ['fig', '4', 'res_speed_h'], 'cap-k': ['fig', '5', 'res_k_h'], 'cap-flow': ['fig', '1', 'real_flow_h'], 'cap-ex': ['fig', '2', 'real_ex_h'],
-      'cap-check': ['fig', '3', 'real_check_h'] };
+      'cap-check': ['fig', '3', 'real_check_h'], 'cap-reach': ['fig', '4', 'real_reach_h'] };
     for (const id in cap) { const [k, n, h] = cap[id]; $('#' + id).innerHTML = `<span class="tag">${t(k)} ${n}</span>${esc(t(h))}`; }
     engineStatus(); renderStory(); renderPatterns(); renderSim(); renderData(); renderSources();
     if (S.chartsDrawn) { renderResults(); renderReal(); }
@@ -187,7 +187,7 @@ const APP = (() => {
   function setControls() {
     const ready = S.engine === 'ready';
     const tuneOff = S.preset === '10k';
-    ['#new-world', '#sl-frauds', '#sl-kmin', '#sl-kmax', '#sel-window', '#sl-spread', '#sl-cex']
+    ['#new-world', '#sl-frauds', '#sl-kmin', '#sl-kmax', '#sel-window', '#sl-spread', '#sl-cex', '#sel-blacklist', '#sel-eval']
       .forEach(q => { $(q).disabled = !ready || S.busy; });
     ['#sl-sigma', '#sl-kappa', '#sl-pi', '#cb-fan', '#sl-fank', '#sl-fandt', '#sl-fanr', '#reset']
       .forEach(q => { $(q).disabled = !ready || S.busy || tuneOff; });
@@ -251,7 +251,11 @@ const APP = (() => {
     if (S.focusAcc) { const g = $(`#net [data-id="${S.focusAcc}"]`); if (g) g.focus(); S.focusAcc = null; }
     renderAccList(accts); renderCard(); renderStrip(); renderMetrics();
     const w = S.world;
-    if (!S.busy && !$('#world-info .errdetails')) $('#world-info').textContent = t('world_info', { seed: w.seed, frauds: w.frauds.length, accounts: num(w.n_accounts), rows: num(w.n_rows) });
+    if (!S.busy && !$('#world-info .errdetails')) {
+      const st = w.settings || {};
+      const timing = st.blacklist && st.blacklist !== 'old' ? ' ' + t('world_timing', { model: t('bl_' + st.blacklist), when: st.eval_days ? t('eval_' + st.eval_days) : t('eval_end') }) : '';
+      $('#world-info').textContent = t('world_info', { seed: w.seed, frauds: w.frauds.length, accounts: num(w.n_accounts), rows: num(w.n_rows) }) + timing;
+    }
     setControls(); writeUrl();
     renderView();
   }
@@ -278,8 +282,9 @@ const APP = (() => {
     S.worldModel = m;
     const cv = $('#world-canvas'), w = S.world;
     const o = { preset: S.preset, t, tip: $('#world-tip'),
-      onPick: async (fid, acc) => { S.view = 'one'; S.fraud = fid; S.selected = acc; S.graph = await engGraph(fid); renderSim(); } };
-    WORLD.draw(cv, m, o); WORLD.attach(cv, () => S.worldModel, o);
+      onPick: async (fid, acc) => { if (S.busy) return; S.view = 'one'; S.fraud = fid; S.selected = acc; S.graph = await engGraph(fid); renderSim(); } };
+    o.reduce = reduceMotion(); o.zoomIn = $('#world-zoom-in'); o.zoomOut = $('#world-zoom-out'); o.reset = $('#world-reset');
+    WORLD.live(cv, m, o);
     cv.setAttribute('aria-label', t('world_label', { frauds: w.frauds.length, seed: w.seed, n: m.accs.length, shared: m.shared.length }));
     $('#world-sum').textContent = t('world_sum_txt', { frauds: w.frauds.length, n: num(m.accs.length), shared: m.shared.length });
     const lg = S.preset === '10k'
@@ -390,6 +395,8 @@ const APP = (() => {
     const p = { n_seeds: +$('#sl-frauds').value, k_min: +$('#sl-kmin').value, k_max: +$('#sl-kmax').value, cex_share: +$('#sl-cex').value,
       typologies: $$('#pat-boxes input:checked').map(i => i.value) };
     if (!p.typologies.length) p.typologies = ['T4'];
+    p.blacklist = $('#sel-blacklist').value;
+    if ($('#sel-eval').value !== 'end') p.eval_days = +$('#sel-eval').value;
     const w = $('#sel-window').value;
     if (w !== 'random') { p.mule_window_h = +w; p.split_spread = +$('#sl-spread').value; }
     return p;
@@ -505,6 +512,22 @@ const APP = (() => {
     $('#real-g3').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 4</span>${esc(t('real_g3_h'))}</caption><thead><tr><th scope="col">${t('col_addr')}</th><th scope="col">${t('col_ex')}</th><th scope="col" class="n">${t('col_x')}</th><th scope="col" class="n">${t('col_seeds')}</th><th scope="col" class="n">${t('col_kappa1')}</th></tr></thead><tbody>` +
       r.g3_examples.map(g => `<tr><td><a href="https://etherscan.io/address/${esc(g.address)}" target="_blank" rel="noopener">${esc(g.address.slice(0, 10))}…${esc(g.address.slice(-6))}<span class="sr-only"> (Etherscan)</span></a></td><td>${esc(g.exchange)}</td><td class="n">${eur(g.X)}</td><td class="n">${g.seeds}</td><td class="n">${pct(g.kappa, 0)}</td></tr>`).join('') + '</tbody></table>';
     $('#real-limits').innerHTML = t('real_limits').map(x => `<li>${esc(x)}</li>`).join('');
+    const tm = r.timing;
+    if (tm) {
+      const bk = ['before', '0-7', '8-30', '31-180', '>180'], cols = [['scamsniffer', t('tau_ss')], ['tether', t('tau_te')], ['old_sim', t('tau_old')]];
+      $('#real-tau').innerHTML = `<table class="t"><caption><span class="tag">${t('tbl')} 5</span>${esc(t('real_tau_h'))}</caption><thead><tr><th></th>${cols.map(c => `<th scope="col" class="n">${esc(c[1])}</th>`).join('')}</tr></thead><tbody>` +
+        `<tr><th scope="row">${esc(t('tau_median'))}</th>${cols.map(c => `<td class="n">${tm[c[0]].median_delay} ${t('tau_days')}</td>`).join('')}</tr>` +
+        bk.map(k => `<tr><th scope="row">${esc(t('tau_bucket')[k])}</th>${cols.map(c => `<td class="n">${pct(tm[c[0]].buckets[k] || 0, 0)}</td>`).join('')}</tr>`).join('') +
+        `<tr><th scope="row">${esc(t('tau_gone'))}</th><td class="n">–</td><td class="n">${pct(tm.tether.gone_before, 0)}</td><td class="n">–</td></tr>` +
+        `<tr><td colspan="4" class="note">${esc(t('tau_n', { s: tm.scamsniffer.seeds, a: tm.tether.addresses }))}</td></tr></tbody></table>`;
+      const ds = [0, 7, 30];
+      chart('ch-reach', { type: 'bar', aspect: window.innerWidth < 600 ? 0.9 : 2.2, data: { labels: ds.map(d => d ? t('reach_day', { d }) : t('reach_day0')), datasets: [
+        { label: t('reach_real'), data: ds.map(d => 100 * tm.scamsniffer.reached[d]), backgroundColor: C.red },
+        { label: t('reach_alert'), data: ds.map(d => 100 * tm.sim_reached.alert[d]), backgroundColor: C.r3 },
+        { label: t('reach_freeze'), data: ds.map(d => 100 * tm.sim_reached.freeze[d]), backgroundColor: C.r2 },
+        { label: t('reach_old'), data: ds.map(d => 100 * tm.sim_reached.old[d]), backgroundColor: C.k10 }] },
+        options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
+    }
   }
 
   /* ---------------------------------------------------------------- data explained, sources */

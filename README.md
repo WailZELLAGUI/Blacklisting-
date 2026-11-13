@@ -13,9 +13,9 @@ This site accompanies the chapter "Fraudster +1" of the author's PhD thesis on f
 | Section | Content |
 |---|---|
 | The idea | The method in four steps and the meaning of the grades G0-G3 |
-| Simulator | Our thesis simulator running **in the browser** (Python via Pyodide): create new worlds, change the rule and its thresholds, see one fraud as a network, click an account to see why it got its grade |
+| Simulator | Our thesis simulator running **in the browser** (Python via Pyodide): create new worlds (patterns, mules, collector, blacklisting timing, grading date), change the rule and its thresholds, see one fraud as a network or the whole world as one interactive network (drag, zoom, hover), click an account to see why it got its grade |
 | Results | Precision and recall on 20 test worlds never used for tuning (collector settings measured on our BigQuery data), by role, by fraud pattern, robustness |
-| Real data | Ethereum phishing addresses (Jul 2022 - Feb 2023, Google BigQuery public dataset): where the money went, exchange deposit accounts reached, grades, check over time |
+| Real data | Ethereum phishing addresses (Jul 2022 - Feb 2023, Google BigQuery public dataset): where the money went, exchange deposit accounts reached, grades, check over time; when scam addresses get blacklisted (ScamSniffer alerts, Tether freezes) and how many exchange accounts are already reached by then |
 | Data explained | Every column the grades use, example rows, fraud patterns and roles |
 | Sources | Data sets and studies used |
 
@@ -51,7 +51,7 @@ When a world is created you choose how fast the scam addresses are blacklisted, 
   once most of it has already left (365 days simulated).
 
 Grading at 1, 7, 30 or 90 days after blacklisting uses only the money moved by then; the counts are then over the
-accounts already reached. The Real data page compares the measured delays with the simulator (table C-5, figure C-4).
+accounts already reached. The Real data page compares the measured delays with the simulator (table 5 and figure 4 of that page).
 
 ## Run locally
 

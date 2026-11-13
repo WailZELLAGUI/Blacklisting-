@@ -19,7 +19,7 @@
   --scrim: color-mix(in oklab, var(--color-ink) 10%, transparent);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.12 0 0 0 0 0.16 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --nav-h: 64px;
-  --ink-hex: #121a26; --paper-hi-hex: #fbfcfd;
+  --ink-hex: #121a26; --paper-hi-hex: #fbfcfd; --muted-hex: #5f6b78;
 }
 
 /* ---------- shared pieces */
@@ -227,8 +227,8 @@ table.t .ci { color: var(--color-muted); font-size: var(--text-xs); }
 .vhead h1 { font-size: var(--text-display-s); max-width: 22ch; }
 .vhead .lead { margin-top: var(--space-md); max-width: 62ch; }
 .figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2xl) var(--gap-columns); }
-figure.fig { margin: 0; min-width: 0; border-top: var(--rule-hair) solid var(--color-ink); padding-top: var(--space-md); }
-figure.fig.wide { grid-column: 1 / -1; }
+.fig { margin: 0; min-width: 0; border-top: var(--rule-hair) solid var(--color-ink); padding-top: var(--space-md); }
+.fig.wide { grid-column: 1 / -1; }
 figure.fig figcaption { font-size: var(--text-sm); color: var(--color-ink-2); margin-bottom: var(--space-md); max-width: 62ch; }
 figure.fig figcaption b { display: block; font: 400 var(--text-title)/1.2 var(--font-display); color: var(--color-ink); margin-bottom: var(--space-2xs); }
 .chart { position: relative; min-width: 0; }
@@ -289,7 +289,10 @@ figure.fig figcaption b { display: block; font: 400 var(--text-title)/1.2 var(--
 .acclist { margin-top: var(--space-md); }
 .acclist > summary { cursor: pointer; font: 500 var(--text-sm) var(--font-body); color: var(--color-ink); text-decoration: underline; text-decoration-color: var(--color-rule); text-underline-offset: 0.2em; padding-block: var(--space-2xs); }
 .acclist .tablewrap { max-height: 360px; overflow: auto; margin-top: var(--space-xs); }
-#world-canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; cursor: crosshair; touch-action: pan-y; }
+#world-canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; cursor: grab; touch-action: pan-y; }
+#world-canvas:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.canvasbar { margin-bottom: var(--space-sm); }
+.canvasbar .btn { min-height: 40px; padding: 0 var(--space-md); }
 .world-sum { font-size: var(--text-sm); color: var(--color-ink-2); margin-block: var(--space-xs); max-width: 80ch; }
 .card { border-top: var(--rule-hair) solid var(--color-ink); padding-top: var(--space-sm); }
 .card h2 { font-size: var(--text-title); margin-bottom: var(--space-2xs); }
@@ -351,6 +354,7 @@ figure.fig figcaption b { display: block; font: 400 var(--text-title)/1.2 var(--
   .roles, .cols2 { grid-template-columns: minmax(0, 1fr); }
   .nethint { display: block; }
   .netwrap { -webkit-mask-image: linear-gradient(to right, var(--color-ink) 82%, transparent); mask-image: linear-gradient(to right, var(--color-ink) 82%, transparent); }
+  #world-view .netwrap { -webkit-mask-image: none; mask-image: none; overflow: visible; }
   .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
   .seg button { white-space: normal; line-height: 1.2; }
   .ask { left: var(--space-md); right: var(--space-md); width: auto; }
