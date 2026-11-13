@@ -1,7 +1,7 @@
 /* Runs our Python code (simulator, features, grades) in a background thread with Pyodide. */
 const VERSIONS = ['v0.29.4', 'v0.29.3', 'v0.28.3', 'v0.27.7'];
-const FILES = ['sim.py', 'features.py', 'detectors.py', 'detectors2.py', 'detectors3.py', 'configs.py', 'webapi.py',
-  'rules.json', 'realdata/out/blte_params.json'];
+const FILES = ['sim.py', 'features.py', 'detectors.py', 'detectors2.py', 'detectors3.py', 'configs.py', 'evaltime.py', 'webapi.py',
+  'rules.json', 'realdata/out/blte_params.json', 'realdata/out/timing_params.json'];
 const ALLOWED = new Set(['new_world', 'grade', 'fraud_graph', 'sample_rows']);
 let py = null;
 
