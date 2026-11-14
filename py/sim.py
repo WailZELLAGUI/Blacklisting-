@@ -30,6 +30,9 @@ BLTE = _json.load(open(_BLTE_PATH)) if _os.path.exists(_BLTE_PATH) else None
 # measured blacklisting delays and pay-out lags (realdata/timing/build_timing_params.py)
 _TIMING_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "timing_params.json")
 TIMING = _json.load(open(_TIMING_PATH)) if _os.path.exists(_TIMING_PATH) else None
+# measured spread of a fraud's money over exchange deposit accounts (realdata/analysis/compare_shares.py)
+_SPLIT_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "split_params.json")
+SPLIT = _json.load(open(_SPLIT_PATH))["seeds"] if _os.path.exists(_SPLIT_PATH) else None
 
 
 @dataclass
@@ -89,6 +92,7 @@ class Config:
     cex_share: float = 1.0                # share of handler money that reaches participating exchanges
     p_collector: float = 0.0              # seed first sends to a collector wallet
     p_collector_range: Optional[Tuple[float, float]] = None   # if set, each world draws its own p_collector, U(lo, hi)
+    p_new_mule_range: Optional[Tuple[float, float]] = None    # if set, each world draws its own p_new_mule_account, U(lo, hi)
     drip_amount: tuple = (400.0, 400.0)   # T9: monthly payment to the fraudster's own busy account
     drip_months: tuple = (3, 6)
     p_salary: float = 0.0                 # seed pays monthly salaries to 1-3 accomplices
@@ -111,6 +115,11 @@ class Config:
     # "alert" : measured on ScamSniffer seeds (early-warning list): delay and pay-out lags of one real seed
     # "freeze": measured on Tether's USDT blacklist (late freeze): delay; pay-out lags as in "alert"
     blacklist_model: str = "old"
+    # ---- how much of a fraud reaches our exchanges, and over how many payments ----
+    # "pilot": cex_share fixed, k drawn from k_range (all results up to 13 Nov 2026)
+    # "real" : each fraud copies one real seed (BigQuery): k = its number of deposit accounts (>= EUR 100) and the share
+    #          of its money reaching our exchanges = the sum of their shares
+    split_model: str = "pilot"
 
     def with_(self, **kw) -> "Config":
         return replace(self, **kw)
@@ -134,6 +143,7 @@ class World:
     plus2: list = field(default_factory=list)       # onward payments from own accounts (+2)
     self_accounts: dict = field(default_factory=dict)  # seed -> list of own-account ids
     p_collector: float = 0.0                           # value used in this world (drawn if cfg.p_collector_range)
+    p_new_mule: Optional[float] = None                 # value used in this world (drawn if cfg.p_new_mule_range)
     trng: Optional[np.random.Generator] = None         # separate stream for measured timing draws
     _order: int = 0
 
@@ -324,7 +334,7 @@ def make_handler(world, rng, s, kind, exch, role, iid=None, t_ref=0.0, cover=Fal
     elif kind == "self" and cfg.p_self_busy > 0 and rng.random() < cfg.p_self_busy:
         aid = world.new_account(rng, iid, exch, "self_busy")
         legit_profile(world, rng, aid, allow_ramp=False)
-    elif kind == "mule" and rng.random() > cfg.p_new_mule_account:
+    elif kind == "mule" and rng.random() > (cfg.p_new_mule_account if world.p_new_mule is None else world.p_new_mule):
         # recruited existing customer
         aid = world.new_account(rng, iid, exch, "mule_old")
         legit_profile(world, rng, aid, allow_ramp=False)
@@ -441,6 +451,10 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         # own stream: the rest of the world (amounts, accounts, patterns) is the same as with "old"
         ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
         w.trng = np.random.default_rng(ss.spawn(1)[0])
+    if cfg.p_new_mule_range:
+        # own child stream, drawn last: the other draws of the world are unchanged
+        ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+        w.p_new_mule = float(np.random.default_rng(ss.spawn(1)[0]).uniform(*cfg.p_new_mule_range))
     w.popular = [(f"pop{i}", rng.random() < cfg.p_popular_labelled) for i in range(cfg.n_popular_dest)]
     for ex in range(cfg.n_exchanges):
         for _ in range(cfg.n_services_per_exchange):
@@ -485,9 +499,19 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         w.seeds[s] = dict(seed=s, F=F, F_known=F_known, typology=typ, k=k, tau=tau,
                           t_col0=t_col0, t_col1=t_col1, t_dist=t_dist, out=0.0, lags=lags)
         budget = F * rng.uniform(*cfg.handler_share)
-        if cfg.cex_share < 1.0 and typ != "T9":
-            add_lump(w, s, budget * (1.0 - cfg.cex_share))   # leaves through routes outside our exchanges
-            budget *= cfg.cex_share
+        cex = cfg.cex_share
+        if cfg.split_model == "real":
+            if SPLIT is None:
+                raise FileNotFoundError(_SPLIT_PATH)
+            n_real, tot_real = SPLIT[int(rng.integers(len(SPLIT)))]
+            if typ != "T1":
+                k = int(min(max(n_real, 1), 20))
+                w.seeds[s]["k"] = k
+            cex = float(min(1.0, tot_real / np.mean(cfg.handler_share)))
+            w.seeds[s]["cex_share"] = cex
+        if cex < 1.0 and typ != "T9":
+            add_lump(w, s, budget * (1.0 - cex))   # leaves through routes outside our exchanges
+            budget *= cex
         collector = w.p_collector > 0 and rng.random() < w.p_collector
         w.seeds[s]["collector"] = bool(collector)
         if cfg.split_random:

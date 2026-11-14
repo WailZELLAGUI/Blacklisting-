@@ -44,6 +44,8 @@ class Rule:
     ms_floor: float = 0.01         # second-seed floor, chosen on calibration worlds
     # revision 4 (supervisor review, 12 Nov 2026): the amount branch is X >= 10k only, without 'or the whole fraud'
     whole_fraud: bool = True
+    # 14 Nov 2026: G2 share relative to the seed's money that reaches our exchanges (add_rel_columns), not to all it sent
+    rel_share: bool = False
 
 
 def amount_ok(Xv, df, p) -> np.ndarray:
@@ -65,14 +67,24 @@ def add_ms_columns(df: pd.DataFrame, floors=(0.02, 0.05, 0.10), x_min=100.0) -> 
     return df
 
 
+def add_rel_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """cex_V3: money of the seed that reaches all our exchanges (known through the sharing protocol);
+    cex_V1: money of the seed that reaches the account's own exchange."""
+    df = df.copy()
+    df["cex_V3"] = df.groupby(["world", "seed"]).X.transform("sum").values
+    df["cex_V1"] = df.groupby(["world", "seed", "exch"]).X.transform("sum").values
+    return df
+
+
 def _parts(df: pd.DataFrame, p: Rule, vis: str):
     Xv = df[f"X_{vis}"].values
-    sig = Xv / df.out2.values
+    sig1 = Xv / df.out2.values
+    sig = (Xv / df[f"cex_{'V3' if vis in ('V2', 'V3', 'V4') else 'V1'}"].values) if getattr(p, "rel_share", False) else sig1
     x_ok = df.X.values >= p.x_min
     theta_b = amount_ok(Xv, df, p)
     s_g1 = p.sigma if p.sigma_g1 is None else p.sigma_g1
-    g1a = ((sig >= s_g1) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
-    share2 = ((sig >= max(p.sigma, s_g1)) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
+    g1a = ((sig1 >= s_g1) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
+    share2 = ((sig >= (p.sigma if getattr(p, "rel_share", False) else max(p.sigma, s_g1))) if p.use_sigma else np.zeros(len(df), bool)) | theta_b
     conv = df[f"conv_{vis}"].values == 1
     g1 = x_ok & (g1a | (conv & p.conv_entry))
     g2_share = share2 | (conv & p.conv_entry)
