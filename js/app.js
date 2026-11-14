@@ -371,7 +371,6 @@ const APP = (() => {
     const row = (rk, cls) => { const b = r.by_role[rk]; if (!b) return '';
       return `<div>${esc(t('roles')[rk])} <span class="note">(${b.flagged}/${b.n})</span><div class="bar ${cls}" role="img" aria-label="${pct(b.rate || 0, 0)}"><i style="width:${100 * (b.rate || 0)}%"></i></div></div>`; };
     $('#roles').innerHTML = `<div class="h">${t('role_h')}</div>` + pos.map(x => row(x, '')).join('') + neg.map(x => row(x, 'neg')).join('');
-    renderTimeline();
   }
   /* stable values: the robust zone of the searched thresholds (results8/zone_robust.json) */
   function renderStable() {
@@ -381,46 +380,6 @@ const APP = (() => {
       [t('sl_kappa'), rng(v.kappa), t('stable_free')], [t('sl_pi'), rng(v.pi), t('stable_free')]];
     box.innerHTML = `<h3 class="subhead">${esc(t('stable_h'))}</h3><div class="tablewrap"><table class="t"><caption>${esc(t('stable_cap'))}</caption><thead><tr><th scope="col">${esc(t('stable_value'))}</th><th scope="col" class="n">${esc(t('stable_range'))}</th><th scope="col">${esc(t('stable_status'))}</th></tr></thead><tbody>` +
       rows.map(r => `<tr><th scope="row">${esc(r[0])}</th><td class="n">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('') + '</tbody></table></div>';
-  }
-  /* same world, same rule, graded at tau + 1/7/30/90 days and at the end: precomputed for the default world, computed in Python otherwise */
-  function tlKey() { return `${S.world.seed}|${S.preset}|${S.vis}|${JSON.stringify(S.overrides)}`; }
-  function tlData() {
-    if (S.tl && S.tl.key === tlKey()) return S.tl.rows;
-    if (S.def && S.def.timelines && S.world.seed === S.def.world.seed && !Object.keys(S.overrides).length && S.world.settings.eval_days === 90)
-      return S.def.timelines[`${S.preset}|${S.vis}`];
-    return null;
-  }
-  async function runTimeline() {
-    if (S.engine !== 'ready' || S.tlBusy) return;
-    S.tlBusy = true; renderTimeline();
-    try {
-      const key = tlKey();
-      const rows = JSON.parse(await call('timeline', JSON.stringify({ preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev5' : S.preset, overrides: S.overrides })));
-      S.tl = { key, rows };
-    } catch (e) { S.tl = null; }
-    S.tlBusy = false; renderTimeline();
-  }
-  function renderTimeline() {
-    const box = $('#tl-box'); if (!box || !S.world) return;
-    const rows = tlData();
-    if (!rows) {
-      box.innerHTML = S.tlBusy ? `<p class="note">${esc(t('tl_busy'))}</p>`
-        : `<p><button class="btn" type="button" id="tl-run"${S.engine === 'ready' ? '' : ' disabled'}>${esc(t('tl_run'))}</button></p>`;
-      const b = $('#tl-run'); if (b) b.onclick = runTimeline;
-      return;
-    }
-    const lab = (d) => d === null ? t('time_end') : `τ + ${d} ${d === 1 ? t('tau_days').replace(/s$/, '') : t('tau_days')}`;
-    box.innerHTML = `<div class="tablewrap"><table class="t"><caption>${esc(t('tl_cap'))}</caption><thead><tr><th scope="col">${esc(t('tl_when'))}</th><th scope="col" class="n">${t('met_found')}</th><th scope="col" class="n">${t('met_prec')}</th><th scope="col" class="n">${t('met_value')}</th><th scope="col" class="n">${t('met_fa')}</th><th scope="col" class="n">${esc(t('tl_10k'))}</th></tr></thead><tbody>` +
-      rows.map(r => `<tr><th scope="row">${esc(lab(r.days))}</th><td class="n">${pct(r.selected.recall)}</td><td class="n">${pct(r.selected.precision)}</td><td class="n">${pct(r.selected.value_recall)}</td><td class="n">${r.selected.false_alerts}</td><td class="n">${pct(r.ten_k.recall)} / ${pct(r.ten_k.precision)}</td></tr>`).join('') +
-      `</tbody></table></div><figure class="fig"><div class="chart"><canvas id="ch-tl" role="img" aria-label="${esc(t('tl_cap'))}"></canvas><div class="sr-only"></div></div></figure>`;
-    if (typeof Chart === 'undefined') return;
-    const ser = (g, k) => rows.map(r => 100 * (r[g][k] ?? 0));
-    chart('ch-tl', { type: 'line', data: { labels: rows.map(r => lab(r.days)), datasets: [
-      { label: `${t('met_found')}`, data: ser('selected', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
-      { label: `${t('met_prec')}`, data: ser('selected', 'precision'), borderColor: C.r4, backgroundColor: C.r4, borderDash: [6, 4], borderWidth: 2 },
-      { label: `${t('met_value')}`, data: ser('selected', 'value_recall'), borderColor: C.r3b, backgroundColor: C.r3b, borderWidth: 2 },
-      { label: `${t('tl_10k')} (${t('met_found').toLowerCase()})`, data: ser('ten_k', 'recall'), borderColor: C.k10, backgroundColor: C.k10, borderWidth: 3 }] },
-      options: { scales: { y: pctAxis }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
   }
   async function newWorld(params) {
     if (S.engine !== 'ready') throw new Error('Python not ready');
