@@ -54,7 +54,7 @@ that receives the whole fraud already passes the share test). On the 20 test wor
 it finds the same 33.9 % of involved accounts as the original revision 2, at 89.5 % precision instead of 88.4 %; on the
 two sensitivity sweeps (mule speed, mules per fraud) it also finds the same accounts, about 1 point more precisely
 (`experiments11.py`, `results4/sweeps_measured_rev4.csv`). Revision 3 (fan-out route) stays
-available but is not the headline: it stays below 90 % precision, and on real data two exchange accounts paid by the
+available but is not the headline: it raises more false alerts (0.20 per fraud against 0.13), and on real data two exchange accounts paid by the
 same scammer are a median of 25 days apart, so its 6-hour route would rarely fire. The earlier headline (hand-set
 timing, end of a 180-day period) is kept in `data/thesis.json` as `main_E_handset`.
 
