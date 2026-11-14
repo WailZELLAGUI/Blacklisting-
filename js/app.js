@@ -1,8 +1,8 @@
 /* Main page logic: exhibit tabs, languages, simulator, charts. */
 const APP = (() => {
-  const S = { lang: 'en', thesis: null, def: null, world: null, res: null, graph: null, preset: 'rev4', vis: 'V3', overrides: {},
+  const S = { lang: 'en', thesis: null, def: null, world: null, res: null, graph: null, preset: 'rev5', vis: 'V3', overrides: {},
     colorBy: 'grade', mistakes: true, fraud: null, selected: null, engine: 'idle', engineVersion: '', worker: null,
-    pending: {}, nextId: 1, charts: {}, busy: false, rows: null, page: 'story', view: 'one', heroPreset: 'rev4' };
+    pending: {}, nextId: 1, charts: {}, busy: false, rows: null, page: 'story', view: 'one', heroPreset: 'rev5' };
   const $ = (q) => document.querySelector(q);
   const $$ = (q) => [...document.querySelectorAll(q)];
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -35,9 +35,9 @@ const APP = (() => {
         S.engineVersion = m.version;
         // load the same world the page shows, so every later call works on it
         call('new_world', JSON.stringify({ seed: S.world.seed, ...(S.world.params || {}) }), true)
-          .then(() => call('grade', JSON.stringify({ preset: 'rev4', vis: 'V3', base: 'rev4', overrides: {} }), true))
+          .then(() => call('grade', JSON.stringify({ preset: 'rev5', vis: 'V3', base: 'rev5', overrides: {} }), true))
           .then((g) => {
-            const ref = S.def.grades['rev4|V3'].selected;
+            const ref = S.def.grades['rev5|V3'].selected;
             S.identical = g.selected.found === ref.found && g.selected.false_alerts === ref.false_alerts;
             S.engine = 'ready'; engineStatus(); setControls(); renderPatterns();
             call('sample_rows').then(r => { S.rows = r; renderData(); }).catch(() => {});
@@ -77,7 +77,7 @@ const APP = (() => {
   /* ---------------------------------------------------------------- URL state: rule, fraud and account survive a reload or a shared link */
   function readUrl() {
     const q = new URLSearchParams(location.search);
-    if (['10k', 'rev2', 'rev3', 'rev4'].includes(q.get('rule'))) S.preset = q.get('rule');
+    if (['10k', 'rev2', 'rev3', 'rev4', 'rev5'].includes(q.get('rule'))) S.preset = ['rev2', 'rev4'].includes(q.get('rule')) ? 'rev5' : q.get('rule');   // the lead rule is shown as "Revision 2" (internal preset id rev5)
     if (['V1', 'V3'].includes(q.get('vis'))) S.vis = q.get('vis');
     if (q.get('fraud')) S.urlFraud = +q.get('fraud');
     if (q.get('acc')) S.urlAcc = q.get('acc');
@@ -127,22 +127,22 @@ const APP = (() => {
   function renderStory() {
     if (!S.thesis) return;
     const m = S.thesis.main_E;
-    $('#p1').innerHTML = t('p1', { a: pct(m.ten_k.precision, 0), b: `<mark>${pct(m.rev4_V3.precision, 0)}</mark>` }) +
+    $('#p1').innerHTML = t('p1', { a: pct(m.ten_k.precision, 0), b: `<mark>${pct(m.rev5_V3.precision, 0)}</mark>` }) +
       ` <a class="cite" href="#results">${esc(t('cite_b1'))}</a>`;
     // the three headline measures side by side: found, precision, money covered (same 20 test worlds)
     const hm = [['key_found', 'recall'], ['key_prec', 'precision'], ['key_money', 'value_recall']];
     if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div>');
     $('#key3').innerHTML = `<table class="t"><caption>${esc(t('key3_cap'))}</caption><thead><tr><th scope="col"></th><th scope="col" class="n">${esc(t('key_rule10'))}</th><th scope="col" class="n">${esc(t('hero_grades'))}</th></tr></thead><tbody>` +
-      hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev4_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
-    const k = [['ten_k', 'key_rule10'], ['rev2_V3', 'key_rev2'], ['rev3_V3', 'key_rev3'], ['rev4_V3', 'key_rev4']];
+      hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev5_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
+    const k = [['ten_k', 'key_rule10'], ['rev5_V3', 'key_rev5'], ['rev3_V3', 'key_rev3']];
     if ($('#kpis')) $('#kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('key_tbl'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('key_found')}</th><th scope="col" class="n">${t('key_prec')}</th></tr></thead><tbody>` +
-      k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev4_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
+      k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev5_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
     const c = S.thesis.real.check_90d;
     $('#key-real').textContent = t('key_real', { g3: pct(c.G3.either, 0), g0: pct(c['grade 0'].either, 0) });
     $('#ba-bars').style.setProperty('--guide', `${(100 * m.ten_k.recall).toFixed(1)}%`);
-    $('#ba-bars').innerHTML = [['ten_k', 'key_rule10'], ['rev4_V3', 'key_rev4']].map(([key, lab]) =>
-      `<div class="bar-row${key === 'rev4_V3' ? ' lead' : ''}"><span class="name">${esc(t(lab))}</span><span class="track" aria-hidden="true"><i style="width:${(100 * m[key].recall).toFixed(1)}%"></i></span><span class="val">${pct(m[key].recall, 0)}</span></div>`).join('');
-    $('#hero-lede').innerHTML = t('hero_lede', { a: `<mark>${pct(m.ten_k.recall, 0)}</mark>`, b: `<mark>${pct(m.rev4_V3.recall, 0)}</mark>`, days: S.thesis.headline.days, reached: pct(S.thesis.headline.accounts_reached, 0) });
+    $('#ba-bars').innerHTML = [['ten_k', 'key_rule10'], ['rev5_V3', 'key_rev5']].map(([key, lab]) =>
+      `<div class="bar-row${key === 'rev5_V3' ? ' lead' : ''}"><span class="name">${esc(t(lab))}</span><span class="track" aria-hidden="true"><i style="width:${(100 * m[key].recall).toFixed(1)}%"></i></span><span class="val">${pct(m[key].recall, 0)}</span></div>`).join('');
+    $('#hero-lede').innerHTML = t('hero_lede', { a: `<mark>${pct(m.ten_k.recall, 0)}</mark>`, b: `<mark>${pct(m.rev5_V3.recall, 0)}</mark>`, days: S.thesis.headline.days, reached: pct(S.thesis.headline.accounts_reached, 0) });
     renderHero(); renderWorldPreview();
   }
   // the hero: one fraud of world 2027, switched between the €10k rule and the grades
@@ -172,9 +172,9 @@ const APP = (() => {
   }
   function renderWorldPreview() {
     if (!S.def) return;
-    const m = defaultWorldModel('rev4', 'V3'), w = S.def.world;
+    const m = defaultWorldModel('rev5', 'V3'), w = S.def.world;
     const cv = $('#world-preview');
-    WORLD.draw(cv, m, { preset: 'rev4', t });
+    WORLD.draw(cv, m, { preset: 'rev5', t });
     cv.setAttribute('aria-label', t('world_label', { frauds: w.frauds.length, seed: w.seed, n: m.accs.length, shared: m.shared.length }));
     $('#world-lead').textContent = t('world_lead', { frauds: w.frauds.length, n: num(m.accs.length), shared: m.shared.length });
     $('#close-facts').innerHTML = [[w.frauds.length, 'facts_frauds'], [num(w.n_accounts), 'facts_accounts'], [num(w.n_rows), 'facts_pairs'], [m.shared.length, 'facts_shared']]
@@ -197,6 +197,7 @@ const APP = (() => {
     ['#sl-sigma', '#sl-kappa', '#sl-pi', '#cb-fan', '#sl-fank', '#sl-fandt', '#sl-fanr', '#reset']
       .forEach(q => { $(q).disabled = !ready || S.busy || tuneOff; });
     $('#tune-off').hidden = !tuneOff;
+    renderStable();
     $('#adv-sub').textContent = ready ? t('adv_sub') : t('needs_python');
     $$('#pat-boxes input').forEach(i => i.disabled = !ready || S.busy);
     const fixedWindow = $('#sel-window').value !== 'random';
@@ -217,7 +218,7 @@ const APP = (() => {
     $('#v-spread').textContent = (+$('#sl-spread').value).toFixed(1); $('#v-cex').textContent = pct(+$('#sl-cex').value, 0);
   }
   async function regrade(keepFraud = true) {
-    const spec = { preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev2' : S.preset, overrides: S.overrides };
+    const spec = { preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev5' : S.preset, overrides: S.overrides };
     S.res = await engGrade(spec);
     if (!keepFraud || S.fraud === null) S.fraud = pickFraud();
     S.graph = await engGraph(S.fraud);
@@ -348,7 +349,7 @@ const APP = (() => {
     const ruleName = custom ? t('custom_rule') : t('preset_' + S.preset);
     const row = (name, rec, found, prec, fa, hl) => `<tr${hl ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(name)}</th><td class="n">${hl ? `<mark>${rec}</mark>` : rec}</td><td class="n">${found}</td><td class="n">${prec}</td><td class="n">${fa}</td></tr>`;
     const other = S.preset === '10k'
-      ? row(t('strip_rev4'), pct(m.rev4_V3.recall, 0), '–', pct(m.rev4_V3.precision, 0), '–', false)
+      ? row(t('strip_rev5'), pct(m.rev5_V3.recall, 0), '–', pct(m.rev5_V3.precision, 0), '–', false)
       : row(t('met_vs10k'), pct(ten.recall, 0), `${ten.found} / ${ten.involved}`, pct(ten.precision, 0), ten.false_alerts, false);
     $('#strip').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('met_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('met_found')}</th><th scope="col" class="n">${t('col_accounts')}</th><th scope="col" class="n">${t('met_prec')}</th><th scope="col" class="n">${t('met_fa')}</th></tr></thead><tbody>` +
       row(ruleName, pct(sel.recall, 0), `${sel.found} / ${sel.involved}`, pct(sel.precision, 0), sel.false_alerts, true) + other + '</tbody></table>';
@@ -370,6 +371,56 @@ const APP = (() => {
     const row = (rk, cls) => { const b = r.by_role[rk]; if (!b) return '';
       return `<div>${esc(t('roles')[rk])} <span class="note">(${b.flagged}/${b.n})</span><div class="bar ${cls}" role="img" aria-label="${pct(b.rate || 0, 0)}"><i style="width:${100 * (b.rate || 0)}%"></i></div></div>`; };
     $('#roles').innerHTML = `<div class="h">${t('role_h')}</div>` + pos.map(x => row(x, '')).join('') + neg.map(x => row(x, 'neg')).join('');
+    renderTimeline();
+  }
+  /* stable values: the robust zone of the searched thresholds (results8/zone_robust.json) */
+  function renderStable() {
+    const box = $('#stable-box'); const z = S.thesis && S.thesis.zone; if (!box || !z) return;
+    const v = z.values, rng = (a) => a.length === 1 ? pct(a[0], 0) : `${pct(Math.min(...a), 0)} – ${pct(Math.max(...a), 0)}`;
+    const rows = [[t('sl_g2share'), rng(v.sigma), t('stable_fixed')], [t('stable_delta'), v.delta.map(d => `${d} h`).join(', '), t('stable_fixed')],
+      [t('sl_kappa'), rng(v.kappa), t('stable_free')], [t('sl_pi'), rng(v.pi), t('stable_free')]];
+    box.innerHTML = `<h3 class="subhead">${esc(t('stable_h'))}</h3><div class="tablewrap"><table class="t"><caption>${esc(t('stable_cap'))}</caption><thead><tr><th scope="col">${esc(t('stable_value'))}</th><th scope="col" class="n">${esc(t('stable_range'))}</th><th scope="col">${esc(t('stable_status'))}</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><th scope="row">${esc(r[0])}</th><td class="n">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('') + '</tbody></table></div>';
+  }
+  /* same world, same rule, graded at tau + 1/7/30/90 days and at the end: precomputed for the default world, computed in Python otherwise */
+  function tlKey() { return `${S.world.seed}|${S.preset}|${S.vis}|${JSON.stringify(S.overrides)}`; }
+  function tlData() {
+    if (S.tl && S.tl.key === tlKey()) return S.tl.rows;
+    if (S.def && S.def.timelines && S.world.seed === S.def.world.seed && !Object.keys(S.overrides).length && S.world.settings.eval_days === 90)
+      return S.def.timelines[`${S.preset}|${S.vis}`];
+    return null;
+  }
+  async function runTimeline() {
+    if (S.engine !== 'ready' || S.tlBusy) return;
+    S.tlBusy = true; renderTimeline();
+    try {
+      const key = tlKey();
+      const rows = JSON.parse(await call('timeline', JSON.stringify({ preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev5' : S.preset, overrides: S.overrides })));
+      S.tl = { key, rows };
+    } catch (e) { S.tl = null; }
+    S.tlBusy = false; renderTimeline();
+  }
+  function renderTimeline() {
+    const box = $('#tl-box'); if (!box || !S.world) return;
+    const rows = tlData();
+    if (!rows) {
+      box.innerHTML = S.tlBusy ? `<p class="note">${esc(t('tl_busy'))}</p>`
+        : `<p><button class="btn" type="button" id="tl-run"${S.engine === 'ready' ? '' : ' disabled'}>${esc(t('tl_run'))}</button></p>`;
+      const b = $('#tl-run'); if (b) b.onclick = runTimeline;
+      return;
+    }
+    const lab = (d) => d === null ? t('time_end') : `τ + ${d} ${d === 1 ? t('tau_days').replace(/s$/, '') : t('tau_days')}`;
+    box.innerHTML = `<div class="tablewrap"><table class="t"><caption>${esc(t('tl_cap'))}</caption><thead><tr><th scope="col">${esc(t('tl_when'))}</th><th scope="col" class="n">${t('met_found')}</th><th scope="col" class="n">${t('met_prec')}</th><th scope="col" class="n">${t('met_value')}</th><th scope="col" class="n">${t('met_fa')}</th><th scope="col" class="n">${esc(t('tl_10k'))}</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><th scope="row">${esc(lab(r.days))}</th><td class="n">${pct(r.selected.recall)}</td><td class="n">${pct(r.selected.precision)}</td><td class="n">${pct(r.selected.value_recall)}</td><td class="n">${r.selected.false_alerts}</td><td class="n">${pct(r.ten_k.recall)} / ${pct(r.ten_k.precision)}</td></tr>`).join('') +
+      `</tbody></table></div><figure class="fig"><div class="chart"><canvas id="ch-tl" role="img" aria-label="${esc(t('tl_cap'))}"></canvas><div class="sr-only"></div></div></figure>`;
+    if (typeof Chart === 'undefined') return;
+    const ser = (g, k) => rows.map(r => 100 * (r[g][k] ?? 0));
+    chart('ch-tl', { type: 'line', data: { labels: rows.map(r => lab(r.days)), datasets: [
+      { label: `${t('met_found')}`, data: ser('selected', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
+      { label: `${t('met_prec')}`, data: ser('selected', 'precision'), borderColor: C.r4, backgroundColor: C.r4, borderDash: [6, 4], borderWidth: 2 },
+      { label: `${t('met_value')}`, data: ser('selected', 'value_recall'), borderColor: C.r3b, backgroundColor: C.r3b, borderWidth: 2 },
+      { label: `${t('tl_10k')} (${t('met_found').toLowerCase()})`, data: ser('ten_k', 'recall'), borderColor: C.k10, backgroundColor: C.k10, borderWidth: 3 }] },
+      options: { scales: { y: pctAxis }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
   }
   async function newWorld(params) {
     if (S.engine !== 'ready') throw new Error('Python not ready');
@@ -450,15 +501,15 @@ const APP = (() => {
     if (!S.thesis || typeof Chart === 'undefined') return;
     Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452';
     const m = S.thesis.main_E;
-    const L = { ten_k: t('preset_10k'), rev2_V1: `${t('preset_rev2')} (${t('vis_v1').toLowerCase()})`, rev2_V3: `${t('preset_rev2')} (${t('vis_v3').toLowerCase()})`,
-      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})`,
-      rev4_V1: `${t('preset_rev4')} (${t('vis_v1').toLowerCase()})`, rev4_V3: `${t('preset_rev4')} (${t('vis_v3').toLowerCase()})` };
+    const L = { ten_k: t('preset_10k'),
+      rev5_V1: `${t('preset_rev5')} (${t('vis_v1').toLowerCase()})`, rev5_V3: `${t('preset_rev5')} (${t('vis_v3').toLowerCase()})`,
+      rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})` };
     const ks = Object.keys(L);
-    const rows = ks.concat(['rev2_V3_G3', 'rev3_V3_G3', 'rev4_V3_G3']);
+    const rows = ks.concat(['rev5_V3_G3', 'rev3_V3_G3']);
     const lab = (k) => L[k] || `${t('preset_' + k.slice(0, 4))}, G3`;
     const ci = (lo, hi) => `<span class="ci">(${(100 * lo).toFixed(0)} ${t('to')} ${(100 * hi).toFixed(0)})</span>`;
     $('#res-table').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('res_table_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('col_rec')}</th><th scope="col" class="n">${t('col_prec')}</th><th scope="col" class="n">${t('col_val')}</th><th scope="col" class="n">${t('col_fa')}</th></tr></thead><tbody>` +
-      rows.map(k => `<tr${k === 'rev4_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev4_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2)}</td></tr>`).join('') + '</tbody></table>';
+      rows.map(k => `<tr${k === 'rev5_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev5_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2)}</td></tr>`).join('') + '</tbody></table>';
     chart('ch-main', { type: 'bar', data: { labels: ks.map(k => L[k]), datasets: [
       { label: t('col_rec'), data: ks.map(k => 100 * m[k].recall), backgroundColor: C.r3 },
       { label: t('col_prec'), data: ks.map(k => 100 * m[k].precision), backgroundColor: C.r2 }] },
@@ -468,19 +519,18 @@ const APP = (() => {
     const cser = (bl, det, k) => days.map(d => { const x = cv.find(y => y.blacklist === bl && y.detector === det && y.days === d); return x ? 100 * x[k] : null; });
     const dl = days.map(d => d === 365 ? t('time_end') : `τ + ${d} ${t('tau_days')}`);
     chart('ch-time', { type: 'line', data: { labels: dl, datasets: [
-      { label: `${t('preset_rev4')} G2, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G2+', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
-      { label: `${t('preset_rev4')} G2, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G2+', 'precision'), borderColor: C.r4, backgroundColor: C.r4, borderDash: [6, 4], borderWidth: 2 },
-      { label: `${t('preset_rev4')} G3, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G3', 'recall'), borderColor: C.red, backgroundColor: C.red, borderWidth: 3 },
-      { label: `${t('preset_rev4')} G3, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev4 V3 G3', 'precision'), borderColor: C.red, backgroundColor: C.red, borderDash: [6, 4], borderWidth: 2 },
+      { label: `${t('preset_rev5')} G2, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev5 V3 G2+', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
+      { label: `${t('preset_rev5')} G2, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev5 V3 G2+', 'precision'), borderColor: C.r4, backgroundColor: C.r4, borderDash: [6, 4], borderWidth: 2 },
+      { label: `${t('preset_rev5')} G3, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'Rev5 V3 G3', 'recall'), borderColor: C.red, backgroundColor: C.red, borderWidth: 3 },
+      { label: `${t('preset_rev5')} G3, ${t('col_prec').toLowerCase()}`, data: cser('alert', 'Rev5 V3 G3', 'precision'), borderColor: C.red, backgroundColor: C.red, borderDash: [6, 4], borderWidth: 2 },
       { label: `${t('preset_10k')}, ${t('col_rec').toLowerCase()}`, data: cser('alert', 'B0 10k per exchange', 'recall'), borderColor: C.k10, backgroundColor: C.k10, borderWidth: 3 }] },
       options: { scales: { y: pctAxis }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)} %` } } } } });
     const br = S.thesis.by_role_E;
     const rl = [['own account (SELF)', t('roles').SELF], ['mule', t('roles').MULE], ['mule, without T7', t('roles').MULE + ' (≠T7)'], ['facilitator', t('roles').FACILITATOR], ['all involved', t('all_involved')]];
     const three = (src, keys) => [
       { label: t('preset_10k'), data: keys.map(x => 100 * src(x).ten_k), backgroundColor: C.k10 },
-      { label: t('preset_rev2'), data: keys.map(x => 100 * src(x).rev2), backgroundColor: C.r2 },
-      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3b },
-      { label: t('preset_rev4'), data: keys.map(x => 100 * src(x).rev4), backgroundColor: C.r4 }];
+      { label: t('preset_rev5'), data: keys.map(x => 100 * src(x).rev5), backgroundColor: C.r4 },
+      { label: t('preset_rev3'), data: keys.map(x => 100 * src(x).rev3), backgroundColor: C.r3b }];
     chart('ch-role', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 1.25, data: { labels: rl.map(x => x[1]), datasets: three(x => br[x], rl.map(x => x[0])) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
     const bp = S.thesis.by_pattern_E, pk = Object.keys(bp);
     chart('ch-pattern', { type: 'bar', aspect: window.innerWidth < 600 ? 0.8 : 2.4, data: { labels: pk.map(k => patName(k)), datasets: three(k => bp[k], pk) }, options: { indexAxis: 'y', scales: { x: pctAxis, y: { grid: { display: false } } } } });
@@ -488,10 +538,10 @@ const APP = (() => {
     const ser = (det, k) => wins.map(w => 100 * sp.find(x => x.window_h === w && x.detector === det)[k]);
     const wl = wins.map(w => w <= 72 ? w + ' h' : (S.lang === 'fr' ? '7 jours' : '7 days'));
     const lines = (f) => [
-      { label: `${t('col_rec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'recall'), borderColor: C.r3, backgroundColor: C.r3, borderWidth: 3 },
-      { label: `${t('col_rec')}, ${t('preset_rev2')}`, data: f('Rev2 frozen V3 G2+', 'recall'), borderColor: C.r2, backgroundColor: C.r2, borderWidth: 3 },
-      { label: `${t('col_prec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'precision'), borderColor: C.r3, borderDash: [6, 4], backgroundColor: C.r3, borderWidth: 2 },
-      { label: `${t('col_prec')}, ${t('preset_rev2')}`, data: f('Rev2 frozen V3 G2+', 'precision'), borderColor: C.r2, borderDash: [6, 4], backgroundColor: C.r2, borderWidth: 2 }];
+      { label: `${t('col_rec')}, ${t('preset_rev5')}`, data: f('Rev5 V3 G2+', 'recall'), borderColor: C.r4, backgroundColor: C.r4, borderWidth: 3 },
+      { label: `${t('col_rec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'recall'), borderColor: C.r3b, backgroundColor: C.r3b, borderWidth: 3 },
+      { label: `${t('col_prec')}, ${t('preset_rev5')}`, data: f('Rev5 V3 G2+', 'precision'), borderColor: C.r4, borderDash: [6, 4], backgroundColor: C.r4, borderWidth: 2 },
+      { label: `${t('col_prec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'precision'), borderColor: C.r3b, borderDash: [6, 4], backgroundColor: C.r3b, borderWidth: 2 }];
     chart('ch-speed', { type: 'line', data: { labels: wl, datasets: lines(ser) }, options: { scales: { y: pctAxis } } });
     const sk = S.thesis.sweep_k, kk = [...new Set(sk.map(x => x.k))];
     const kser = (det, k) => kk.map(v => 100 * sk.find(x => x.k === v && x.detector === det)[k]);

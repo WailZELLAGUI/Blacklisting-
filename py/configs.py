@@ -8,7 +8,8 @@ REAL = dict(
     p_self_busy=0.5,
     p_new_mule_account=0.25,
     refund_model="blte", p_inducement=0.17,
-    cex_share=0.30,
+    cex_share=0.50,             # 14 Nov 2026: Chainalysis (2024) 'over 50 %' of illicit funds end at CEXs; 0.30 and 0.86 tested
+    p_new_mule_range=(0.25, 0.50),   # 14 Nov 2026: RUSI 2025 (most mule accounts > 1 year old), FCA 2026 (47.1 % closed in first year)
     p_collector=0.67,           # pilot value, used only when p_collector_range is None
     p_collector_range=(0.267, 0.712),   # BigQuery: share of phishing seeds sending >= 99% .. >= 50% to one address
     p_cluster_miss=0.089,   # measured on our BigQuery data: 26 of 293 phishing seeds, 95% CI 5.8-12.3% (experiments6.py)

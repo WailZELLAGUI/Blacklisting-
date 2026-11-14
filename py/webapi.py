@@ -84,13 +84,13 @@ def new_world(params="{}"):
 
 
 def _rule(spec):
-    preset = spec.get("preset", "rev4")
+    preset = spec.get("preset", "rev5")
     vis = spec.get("vis", "V3")
-    base_name = spec.get("base") or (preset if preset in ("rev2", "rev3", "rev4") else "rev4")
+    base_name = spec.get("base") or (preset if preset in ("rev2", "rev3", "rev4", "rev5") else "rev5")
     base = dict(RULES[base_name][vis])
     for k in ("fan_k", "fan_dt", "fan_ratio"):
         base.setdefault(k, D3.Rule3.__dataclass_fields__[k].default)
-    if base_name in ("rev2", "rev4"):
+    if base_name in ("rev2", "rev4", "rev5"):
         base["fan_k"] = 0
     for k, v in (spec.get("overrides") or {}).items():
         if k in base:
@@ -116,7 +116,7 @@ def grade(spec="{}"):
     fan_n = D3.fan_counts(df, vis, rule.fan_dt, rule.fan_ratio, rule.x_min,
                           rule.sigma_g1 if rule.sigma_g1 is not None else rule.sigma) if rule.fan_k > 0 else np.zeros(len(df), int)
     STATE.update(rule=rule, vis=vis, grades=grades, flag=flag, ch=ch, sig=sig, fan_n=fan_n, ten=ten,
-                 preset=spec.get("preset", "rev4"))
+                 preset=spec.get("preset", "rev5"))
 
     def metrics(f):
         s = score(df, pd.Series(f, index=df.index))
@@ -132,11 +132,33 @@ def grade(spec="{}"):
         by_pattern[t] = dict(n=len(d), rate=_f(flag[d.index].mean()))
     fr = pd.DataFrame(dict(seed=df.seed, f=flag & pos, p=pos))
     fr = fr[fr.p].groupby("seed").f.max()
-    return json.dumps(dict(rule=_rule_public(rule), vis=vis, preset=spec.get("preset", "rev4"),
+    return json.dumps(dict(rule=_rule_public(rule), vis=vis, preset=spec.get("preset", "rev5"),
                            selected=metrics(flag), g3=metrics(grades >= 3), ten_k=metrics(ten),
                            counts={f"G{i}": int((grades == i).sum()) for i in range(4)},
                            by_role=by_role, by_pattern=by_pattern,
                            frauds_with_one_found=_f(fr.mean()) if len(fr) else None))
+
+
+def timeline(spec="{}"):
+    """Same world and same rule, graded at tau + 1 / 7 / 30 / 90 days and at the end of the horizon."""
+    spec = json.loads(spec) if isinstance(spec, str) else dict(spec)
+    rule, vis = _rule(spec)
+    w, seed = STATE["w"], STATE["seed"]
+    out = []
+    for d in (1, 7, 30, 90, None):
+        df = (D2.add_ms_columns(candidate_table(w, world_id=seed)) if d is None
+              else candidate_table_at(w, float(d) * DAY, world_id=seed)).reset_index(drop=True)
+        g1, g2, g3, ch = D3.parts(df, rule, vis)
+        grades = g1.astype(int) + g2.astype(int) + g3.astype(int)
+        ten = b0(df).values
+        flag = ten if spec.get("preset") == "10k" else grades >= 2
+
+        def m(f):
+            s_ = score(df, pd.Series(f, index=df.index))
+            return dict(precision=_f(s_["precision"]), recall=_f(s_["recall"]), value_recall=_f(s_["value_recall"]),
+                        found=int(s_["tp"]), false_alerts=int(s_["fp"]))
+        out.append(dict(days=d, selected=m(flag), g3=m(grades >= 3), ten_k=m(ten)))
+    return json.dumps(out)
 
 
 def _rule_public(r):

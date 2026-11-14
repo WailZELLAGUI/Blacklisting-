@@ -40,18 +40,34 @@ Two settings about the fraudster's collector wallet come from our BigQuery data 
 - when there is a collector, the trace stops there for 8.9% of frauds (26 of 293 seeds, 95% CI 5.8-12.3%;
   7.1% to 9.3% for any cutoff from 50% to 99%). Such a collector is drawn dashed, "Collector not traced".
 
-## Headline results (since 13 Nov 2026)
+## Headline results (since 14 Nov 2026)
 
-The Results page and the opening paragraph now use the measured blacklisting dates: 20 test worlds, early-warning
-list (ScamSniffer timing), each fraud graded 90 days after blacklisting, when 9 in 10 of the accounts it pays have
-received money. Recall counts every account the fraud will ever pay. The default world 2027 uses the same settings.
-Figure 2 shows how the results grow from 7 days after blacklisting to the end of the simulated year.
+The Results page and the opening paragraph use 20 test worlds that were never used to choose a value, with the
+early-warning list (ScamSniffer timing), each fraud graded 90 days after blacklisting (by then 93 % of the involved
+accounts have received money). Recall counts every account the fraud will ever pay. The default world 2027 uses the
+same settings.
 
-The lead rule is **revision 4**: revision 2 without the "or the whole fraud" amount branch, which added nothing
-(an account that receives the whole fraud already passes the share test). Revision 3 (fan-out route) stays
-available but is not the headline: it stays below 90 % precision, and on real data two exchange accounts paid by the
-same scammer are a median of 25 days apart, so its 6-hour route would rarely fire. The earlier headline (hand-set
-timing, end of a 180-day period) is kept in `data/thesis.json` as `main_E_handset`.
+**World settings, sourced on 14 Nov 2026.**
+- Half of a fraud's money reaches our exchanges (`cex_share` 0.50): Chainalysis (Money Laundering and Cryptocurrency,
+  2024) reports that over 50 % of illicit funds end at centralized exchanges (figure from the gated report, quoted by
+  the press). The results also hold at 0.30 and 0.86 (Griffin & Mei: $4.3B of over $5B of pig-butchering money traced
+  to exchanges).
+- 25-50 % of mule accounts are opened for the fraud, drawn per world: RUSI 2025 (Lloyds data: most mule accounts are
+  older than a year) and the FCA multi-firm review of Sep 2026 (47.1 % of offboarded mule accounts closed within their
+  first year).
+- The number of exchange accounts and of innocent accounts paid by each fraud has no public source; it stays an
+  assumption of the simulator (2 to 10 payments to the fraud's handlers).
+
+**The lead rule, shown as "Revision 2"** (`rev5` in the code: G2 share 20 %, concentration 50 %, 90 % passed on within
+24 h, either one). The thresholds are not one "right" point: the site's box "Stable values" shows the value sets that keep
+at least 90 % precision, with a margin for chance, in all three plausible worlds (30 %, 50 %, 86 % of the money
+reaching our exchanges): G2 share 20 % and a 24 h window are fixed, concentration and the share passed on can be anything
+from 50 % to 90 % (`experiments17c.py`). Revision 3 adds the fan-out route: it finds more but raises more than twice the
+false alerts (0.18 per fraud against 0.08), and on real data two exchange accounts paid by the same scammer are a median
+of 25 days apart, so its 6-hour route would rarely fire.
+
+Earlier headlines are kept in `data/thesis.json` for comparison: `main_E_handset` (hand-set timing, end of a 180-day
+period).
 
 ## Blacklisting date in every new world
 
