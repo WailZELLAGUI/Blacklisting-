@@ -17,7 +17,7 @@ Secondary: researchers and curious readers who reach it from the thesis or GitHu
 
 ## Positioning
 
-Today exchanges look at accounts that received a large amount (the €10,000 rule), which misses most people involved. This method grades every receiving account on behaviour (share of the fraud money, concentration, pass-through within 24 h, fan-out to several mules at once) and adds a sharing protocol so exchanges can link the same person across exchanges without revealing customers. Headline from the 20 held-out test worlds: the €10k rule finds about 10 % of involved accounts, the grades about 62 %.
+Today exchanges look at accounts that received a large amount (the €10,000 rule), which misses most people involved. This method grades every receiving account on behaviour (share of the fraud money, concentration, pass-through within 24 h, fan-out to several mules at once) and adds a sharing protocol so exchanges can link the same person across exchanges without revealing customers. Headline from the 20 held-out test worlds: the €10k rule finds 15.0 % of involved accounts, the grades 40.8 % (`data/thesis.json`, `main_E`: `ten_k` and `rev5_V3` recall).
 
 ## Operating Context
 

@@ -21,7 +21,7 @@ const APP = (() => {
   const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------------------------------------------------------------- Python engine (web worker), started on demand */
-  function ensureEngine() { if (S.engine === 'idle') startEngine(); }
+  function ensureEngine() { if (S.engine === 'idle' && S.world) startEngine(); }
   function startEngine() {
     S.engine = 'loading'; engineStatus();
     try {
@@ -40,7 +40,8 @@ const APP = (() => {
             const ref = S.def.grades['rev5|V3'].selected;
             S.identical = g.selected.found === ref.found && g.selected.false_alerts === ref.false_alerts;
             S.engine = 'ready'; engineStatus(); setControls(); renderPatterns();
-            call('sample_rows').then(r => { S.rows = r; renderData(); }).catch(() => {});
+            // Python has just graded the lead rule for the check above: grade again with the rule on screen
+            return regrade();
           }).catch(e => engineFailed(String(e)));
         return;
       }
@@ -75,9 +76,13 @@ const APP = (() => {
   }
 
   /* ---------------------------------------------------------------- URL state: rule, fraud and account survive a reload or a shared link */
+  // rule names in the address bar: the lead rule is shown as "Revision 2" (internal preset id rev5); older links still open
+  const URL_RULE = { '10k': '10k', r2: 'rev5', r3: 'rev3', rev2: 'rev5', rev3: 'rev3', rev4: 'rev5', rev5: 'rev5' };
+  const RULE_URL = { '10k': '10k', rev5: 'r2', rev3: 'r3' };
   function readUrl() {
     const q = new URLSearchParams(location.search);
-    if (['10k', 'rev2', 'rev3', 'rev4', 'rev5'].includes(q.get('rule'))) S.preset = ['rev2', 'rev4'].includes(q.get('rule')) ? 'rev5' : q.get('rule');   // the lead rule is shown as "Revision 2" (internal preset id rev5)
+    const rule = URL_RULE[q.get('rule')];
+    if (rule) S.preset = rule;
     if (['V1', 'V3'].includes(q.get('vis'))) S.vis = q.get('vis');
     if (q.get('fraud')) S.urlFraud = +q.get('fraud');
     if (q.get('acc')) S.urlAcc = q.get('acc');
@@ -86,7 +91,7 @@ const APP = (() => {
   function writeUrl() {
     if (!S.world) return;
     const q = new URLSearchParams();
-    q.set('rule', S.preset); q.set('vis', S.vis);
+    q.set('rule', RULE_URL[S.preset] || S.preset); q.set('vis', S.vis);
     if (S.fraud !== null && S.world.seed === S.def.world.seed) q.set('fraud', S.fraud);
     if (S.selected && S.world.seed === S.def.world.seed) q.set('acc', S.selected);
     if (S.view === 'world') q.set('view', 'world');
@@ -107,6 +112,7 @@ const APP = (() => {
       'cap-speed': ['fig', '5', 'res_speed_h'], 'cap-k': ['fig', '6', 'res_k_h'], 'cap-flow': ['fig', '1', 'real_flow_h'], 'cap-ex': ['fig', '2', 'real_ex_h'],
       'cap-check': ['fig', '3', 'real_check_h'], 'cap-reach': ['fig', '4', 'real_reach_h'] };
     for (const id in cap) { const [k, n, h] = cap[id]; $('#' + id).innerHTML = `<span class="tag">${t(k)} ${n}</span>${esc(t(h))}`; }
+    $('#load-error').hidden = !S.loadError; if (S.loadError) $('#load-error').textContent = t('load_failed');
     engineStatus(); renderStory(); renderPatterns(); renderSim(); renderData(); renderSources();
     if (S.chartsDrawn) { renderResults(); renderReal(); }
   }
@@ -134,9 +140,6 @@ const APP = (() => {
     if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div>');
     $('#key3').innerHTML = `<table class="t"><caption>${esc(t('key3_cap'))}</caption><thead><tr><th scope="col"></th><th scope="col" class="n">${esc(t('key_rule10'))}</th><th scope="col" class="n">${esc(t('hero_grades'))}</th></tr></thead><tbody>` +
       hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev5_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
-    const k = [['ten_k', 'key_rule10'], ['rev5_V3', 'key_rev5'], ['rev3_V3', 'key_rev3']];
-    if ($('#kpis')) $('#kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('key_tbl'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('key_found')}</th><th scope="col" class="n">${t('key_prec')}</th></tr></thead><tbody>` +
-      k.map(([key, lab]) => `<tr><th scope="row" style="font-weight:${key === 'rev5_V3' ? 500 : 400}">${t(lab)}</th><td class="n">${pct(m[key].recall, 0)}</td><td class="n">${pct(m[key].precision)}</td></tr>`).join('') + '</tbody></table>';
     const c = S.thesis.real.check_90d;
     $('#key-real').textContent = t('key_real', { g3: pct(c.G3.either, 0), g0: pct(c['grade 0'].either, 0) });
     $('#ba-bars').style.setProperty('--guide', `${(100 * m.ten_k.recall).toFixed(1)}%`);
@@ -196,6 +199,8 @@ const APP = (() => {
       .forEach(q => { $(q).disabled = !ready || S.busy; });
     ['#sl-sigma', '#sl-kappa', '#sl-pi', '#cb-fan', '#sl-fank', '#sl-fandt', '#sl-fanr', '#reset']
       .forEach(q => { $(q).disabled = !ready || S.busy || tuneOff; });
+    $$('#presets button, #vis button').forEach(b => { b.disabled = S.busy; });      // no rule or fraud change while a world is being created
+    $('#sel-fraud').disabled = S.busy; $('#next-fraud').disabled = S.busy;
     $('#tune-off').hidden = !tuneOff;
     renderStable();
     $('#adv-sub').textContent = ready ? t('adv_sub') : t('needs_python');
@@ -218,8 +223,13 @@ const APP = (() => {
     $('#v-spread').textContent = (+$('#sl-spread').value).toFixed(1); $('#v-cex').textContent = pct(+$('#sl-cex').value, 0);
   }
   async function regrade(keepFraud = true) {
+    if (!S.def) return;
     const spec = { preset: S.preset, vis: S.vis, base: S.preset === '10k' ? 'rev5' : S.preset, overrides: S.overrides };
-    S.res = await engGrade(spec);
+    // gradeSeq moves when a grading starts and when it ends: a whole-world view built across one is thrown away
+    S.gradeSeq = (S.gradeSeq || 0) + 1;
+    const res = await engGrade(spec);
+    S.res = res; S.gradeSeq++;
+    S.graded = { seed: S.world.seed, preset: spec.preset, vis: spec.vis, overrides: JSON.stringify(spec.overrides) };
     if (!keepFraud || S.fraud === null) S.fraud = pickFraud();
     S.graph = await engGraph(S.fraud);
     if (S.selected && !S.graph.nodes.some(n => n.id === S.selected)) S.selected = null;
@@ -271,20 +281,30 @@ const APP = (() => {
     $('#one-view').hidden = world; $('#world-view').hidden = !world;
     if (world && S.page === 'simulator') renderWorld();
   }
+  // The whole world under the rule that was graded last (S.graded). Returns null if the rule or the world changed
+  // while the graphs were loading: they would mix two rules, so nothing is built or cached.
   async function worldModel() {
-    const custom = Object.keys(S.overrides).length || S.world.seed !== S.def.world.seed;
-    if (!custom) return defaultWorldModel(S.preset, S.vis);
-    const key = `py|${S.world.seed}|${S.preset}|${S.vis}|${JSON.stringify(S.overrides)}`;
+    const g = S.graded, seq = S.gradeSeq;
+    if (!g || g.seed !== S.world.seed) return null;
+    const custom = g.overrides !== '{}' || g.seed !== S.def.world.seed;
+    if (!custom) return defaultWorldModel(g.preset, g.vis);
+    const key = `py|${g.seed}|${g.preset}|${g.vis}|${g.overrides}`;
     if (WORLD.cache.has(key)) return WORLD.cache.get(key);
     const graphs = {};
-    for (const f of S.world.frauds) graphs[f.id] = await engGraph(f.id);
-    return WORLD.build(key, graphs, S.world.seed);
+    for (const f of S.world.frauds) {
+      const one = await engGraph(f.id);
+      if (seq !== S.gradeSeq) return null;
+      graphs[f.id] = one;
+    }
+    return WORLD.build(key, graphs, g.seed);
   }
   async function renderWorld() {
+    if (!S.world) return;
     const ticket = S.worldTicket = (S.worldTicket || 0) + 1;
     $('#world-sum').textContent = t('world_loading');
-    const m = await worldModel();
-    if (ticket !== S.worldTicket || S.view !== 'world') return;
+    let m = null;
+    try { m = await worldModel(); } catch (e) { /* the engine stopped: the next drawing uses the world generated in advance */ }
+    if (!m || ticket !== S.worldTicket || S.view !== 'world') return;
     S.worldModel = m;
     const cv = $('#world-canvas'), w = S.world;
     const o = { preset: S.preset, t, tip: $('#world-tip'),
@@ -320,7 +340,7 @@ const APP = (() => {
     const li = (ok, txt) => `<li class="${ok ? 'y' : 'n'}">${mark(ok)}<span><span class="sr-only">${ok ? t('yes') : t('no')}: </span>${esc(txt)}</span></li>`;
     const or = S.lang === 'fr' ? ' ou ' : ' or ';
     const g1 = li(r.amount_ok, t('r_amount')) + li(r.share_g1 || r.big_amount || r.common_destination,
-      [t('r_share1', { v: pct(rule.g1_share, 0) }), t('r_big'), t('r_conv')].join(or));
+      [t('r_share1', { v: pct(rule.g1_share, 0) }), t(r.whole_fraud === false ? 'r_big_10k' : 'r_big'), t('r_conv')].join(or));
     const g2 = li(r.share_g2 || r.big_amount || r.common_destination, t('r_share2', { v: pct(rule.g2_share, 0) }) + (S.lang === 'fr' ? ' (ou montant / destination)' : ' (or amount / destination)')) +
       li(r.concentration_ok || r.pass_through_ok, t('r_kappa', { v: pct(rule.concentration, 0) }) + or + t('r_pi', { v: pct(rule.pass_through, 0) })) +
       (rule.fan_k > 0 ? li(r.fan_route, t('r_fan', { n: r.fan_siblings, h: rule.fan_window_h, k: rule.fan_k })) : '') +
@@ -388,7 +408,7 @@ const APP = (() => {
       const p = params || readWorldControls();
       if (p.seed === undefined) p.seed = Math.floor(Math.random() * 900000) + 100000;
       const w = await call('new_world', JSON.stringify(p));
-      w.params = p; S.world = w; S.fraud = null; S.selected = null;
+      w.params = p; S.world = w; S.fraud = null; S.selected = null; S.graded = null; S.gradeSeq = (S.gradeSeq || 0) + 1;
       await regrade(false);
       return w;
     } finally { S.busy = false; setControls(); renderSim(); }
@@ -419,18 +439,20 @@ const APP = (() => {
 
   /* ---------------------------------------------------------------- results (charts, each with a text table) */
   const C = { r3: '#c0601f', r2: '#efbd8f', k10: '#9aa3ab', red: '#8f3a10', r4: '#c0601f', r3b: '#5b7a99' };
-  function srTable(canvas, cfg) {
-    const old = canvas.parentNode.querySelector('div.sr-only'); if (old) old.remove();
+  function srTable(canvas, cfg, visible) {
+    const old = canvas.parentNode.querySelector('div.figdata'); if (old) old.remove();
     const d = cfg.data, fmt = cfg.fmt || (v => v === null || v === undefined ? '–' : (+v).toFixed(1) + (cfg.unit === undefined ? ' %' : cfg.unit));
-    const wrap = document.createElement('div'); wrap.className = 'sr-only';
-    const tb = document.createElement('table'); wrap.appendChild(tb);
+    const wrap = document.createElement('div'); wrap.className = 'figdata ' + (visible ? 'tablewrap' : 'sr-only');
+    const tb = document.createElement('table'); if (visible) tb.className = 't'; wrap.appendChild(tb);
     tb.innerHTML = `<caption>${esc(t('fig_data'))}</caption><tr><th></th>${d.datasets.map(s => `<th scope="col">${esc(s.label)}</th>`).join('')}</tr>` +
       d.labels.map((l, i) => `<tr><th scope="row">${esc(l)}</th>${d.datasets.map(s => `<td>${fmt(s.data[i])}</td>`).join('')}</tr>`).join('');
     canvas.parentNode.appendChild(wrap);
   }
   function chart(id, cfg) {
-    if (S.charts[id]) S.charts[id].destroy();
     const cv = document.getElementById(id);
+    // without Chart.js (blocked or offline) the figure shows its numbers as a table instead of a drawing
+    if (typeof Chart === 'undefined') { cv.hidden = true; srTable(cv, cfg, true); return; }
+    if (S.charts[id]) S.charts[id].destroy();
     const fig = cv.closest('figure'); const cap = fig && fig.querySelector('figcaption b');
     cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', cap ? cap.textContent : id);
     cfg.options = cfg.options || {}; cfg.options.animation = reduceMotion() ? false : { duration: 500 };
@@ -457,8 +479,8 @@ const APP = (() => {
   }
   const pctAxis = { min: 0, max: 100, ticks: { callback: v => v + ' %' }, grid: { color: '#e1e6ea' } };
   function renderResults() {
-    if (!S.thesis || typeof Chart === 'undefined') return;
-    Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452';
+    if (!S.thesis) return;
+    if (typeof Chart !== 'undefined') { Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452'; }
     const m = S.thesis.main_E;
     const L = { ten_k: t('preset_10k'),
       rev5_V1: `${t('preset_rev5')} (${t('vis_v1').toLowerCase()})`, rev5_V3: `${t('preset_rev5')} (${t('vis_v3').toLowerCase()})`,
@@ -509,7 +531,7 @@ const APP = (() => {
 
   /* ---------------------------------------------------------------- real data */
   function renderReal() {
-    if (!S.thesis || typeof Chart === 'undefined') return;
+    if (!S.thesis) return;
     const r = S.thesis.real;
     $('#real-kpis').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('real_facts_h'))}</caption><tbody>` + [
       [num(r.phishing_active), t('real_seeds')], [meur(r.total_out_eur), t('real_sent')],
@@ -589,12 +611,12 @@ const APP = (() => {
   function wire() {
     $$('.lang button').forEach(b => b.addEventListener('click', () => { S.lang = b.dataset.lang; try { localStorage.setItem('f1-lang', S.lang); } catch (e) {} applyLang(); }));
     window.addEventListener('hashchange', route);
-    $$('#presets button').forEach(b => b.addEventListener('click', () => { S.preset = b.dataset.preset; S.overrides = {}; regrade(); }));
-    $$('#vis button').forEach(b => b.addEventListener('click', () => { S.vis = b.dataset.vis; S.overrides = {}; regrade(); }));
+    $$('#presets button').forEach(b => b.addEventListener('click', () => { if (S.busy) return; S.preset = b.dataset.preset; S.overrides = {}; regrade(); }));
+    $$('#vis button').forEach(b => b.addEventListener('click', () => { if (S.busy) return; S.vis = b.dataset.vis; S.overrides = {}; regrade(); }));
     $$('#colorby button').forEach(b => b.addEventListener('click', () => { S.colorBy = b.dataset.c; renderSim(); }));
     $('#cb-mist').addEventListener('change', e => { S.mistakes = e.target.checked; renderSim(); });
-    $('#sel-fraud').addEventListener('change', async e => { S.fraud = +e.target.value; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); });
-    $('#next-fraud').addEventListener('click', async () => { const ids = S.world.frauds.map(f => f.id); S.fraud = ids[(ids.indexOf(S.fraud) + 1) % ids.length]; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); });
+    $('#sel-fraud').addEventListener('change', async e => { if (S.busy || !S.world) return; S.fraud = +e.target.value; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); });
+    $('#next-fraud').addEventListener('click', async () => { if (S.busy || !S.world) return; const ids = S.world.frauds.map(f => f.id); S.fraud = ids[(ids.indexOf(S.fraud) + 1) % ids.length]; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); });
     $('#play').addEventListener('click', () => NET.play(reduceMotion()));
     $$('#hero-rule button').forEach(b => b.addEventListener('click', () => { S.heroPreset = b.dataset.preset; S.heroAnimate = true; renderHero(); }));
     $$('#view-switch button').forEach(b => b.addEventListener('click', () => { S.view = b.dataset.view; renderView(); writeUrl(); }));
@@ -628,7 +650,15 @@ const APP = (() => {
     let saved = null; try { saved = localStorage.getItem('f1-lang'); } catch (e) {}
     S.lang = saved || ((navigator.language || '').toLowerCase().startsWith('fr') ? 'fr' : 'en');
     readUrl(); wire(); route();
-    const [th, def] = await Promise.all([fetch('data/thesis.json').then(r => r.json()), fetch('data/world_default.json').then(r => r.json())]);
+    const get = async (url) => { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r.json(); };
+    let th, def;
+    try {
+      [th, def] = await Promise.all([get('data/thesis.json'), get('data/world_default.json')]);
+    } catch (e) {
+      // the texts still appear; the figures, the tables and the simulator need the two data files
+      S.loadError = true; applyLang();
+      return;
+    }
     S.thesis = th; S.def = def; S.world = def.world; S.world.params = def.world.params || {};
     if (S.urlAcc) { S.selected = S.urlAcc; S.urlAcc = undefined; }
     applyLang();
@@ -636,13 +666,24 @@ const APP = (() => {
     route();
   }
   // used by the Claude box
+  const PRESETS = ['10k', 'rev5', 'rev3'];
   const api = {
     state: () => S, t, newWorld, call, ensureEngine,
     async setRule({ preset, visibility, overrides }) {
+      if (!S.world) return { error: 'The site data is not loaded.' };
+      if (S.busy) return { error: 'A world is being created; try again when it is ready.' };
+      if (preset && !PRESETS.includes(preset)) return { error: `Unknown preset "${preset}". Known presets: ${PRESETS.join(', ')}.` };
+      if (visibility && !['V1', 'V3'].includes(visibility)) return { error: `Unknown visibility "${visibility}". Use V1 or V3.` };
       if (preset) S.preset = preset; if (visibility) S.vis = visibility;
       S.overrides = overrides || {}; await regrade(); return S.res;
     },
-    async showFraud(id) { S.fraud = +id; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); location.hash = '#simulator'; return S.graph; },
+    async showFraud(id) {
+      if (!S.world) return { error: 'The site data is not loaded.' };
+      if (S.busy) return { error: 'A world is being created; try again when it is ready.' };
+      const ids = S.world.frauds.map(f => f.id), fid = typeof id === 'number' || (typeof id === 'string' && id.trim() !== '') ? +id : NaN;
+      if (!ids.includes(fid)) return { error: `No fraud ${id} in world ${S.world.seed}. Fraud ids go from ${Math.min(...ids)} to ${Math.max(...ids)}.` };
+      S.fraud = fid; S.selected = null; S.graph = await engGraph(S.fraud); renderSim(); location.hash = '#simulator'; return S.graph;
+    },
     selectAccount(id) { S.selected = 'a' + id; renderSim(); return S.graph.nodes.find(n => n.id === S.selected) || null; },
   };
   document.addEventListener('DOMContentLoaded', init);
