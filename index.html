@@ -33,6 +33,7 @@
 </div>
 
 <main id="main" tabindex="-1">
+<p class="warn" id="load-error" role="alert" hidden></p>
 
 <!-- ======================================================= THE IDEA (the report) -->
 <div id="story" class="view">
@@ -229,8 +230,9 @@
 <!-- ======================================================= RESULTS -->
 <div id="results" class="view">
   <div class="container" style="padding-bottom:var(--section-gap-s)">
-    <header class="vhead"><h1 id="h-res" data-i18n="res_h"></h1><p class="lead" data-i18n="res_intro"></p></header>
+    <header class="vhead"><h1 id="h-res" data-i18n="res_h"></h1><p class="lead" id="res-intro"></p></header>
     <div class="tablewrap" id="res-table"></div>
+    <p class="note" id="res-base-note"></p>
     <p class="note" data-i18n="res_rev3_note"></p>
     <div class="figs">
       <figure class="fig"><figcaption><b id="cap-main"></b><span data-i18n="res_main_p"></span></figcaption><div class="chart"><canvas id="ch-main" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
@@ -240,6 +242,22 @@
       <figure class="fig"><figcaption><b id="cap-speed"></b><span data-i18n="res_speed_p"></span></figcaption><div class="chart"><canvas id="ch-speed" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig"><figcaption><b id="cap-k"></b><span data-i18n="res_k_p"></span></figcaption><div class="chart"><canvas id="ch-k" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
     </div>
+    <section class="limits" aria-labelledby="h-assume">
+      <h2 id="h-assume" data-i18n="assume_h"></h2>
+      <p data-i18n="assume_p"></p>
+      <ol id="assume-list"></ol>
+      <p data-i18n="assume_end"></p>
+    </section>
+    <section class="hold" aria-labelledby="h-hold">
+      <h2 class="subhead" id="h-hold" data-i18n="hold_h"></h2>
+      <p class="prose" data-i18n="hold_p"></p>
+      <div class="tablewrap" id="hold-t1"></div>
+      <div class="tablewrap" id="hold-t2"></div>
+      <p class="prose" id="hold-read"></p>
+      <p class="prose note" id="hold-real"></p>
+      <div class="tablewrap" id="hold-t3"></div>
+      <p class="prose note" id="hold-dest"></p>
+    </section>
   </div>
 </div>
 

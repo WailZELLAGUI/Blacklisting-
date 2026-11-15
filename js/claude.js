@@ -16,6 +16,8 @@
         amount_spread: { type: 'number', minimum: 0, maximum: 0.8, description: 'how different the amounts paid to each mule are (0 = equal); only used with payment_window_hours' },
         share_reaching_exchanges: { type: 'number', minimum: 0.05, maximum: 1 },
         patterns: { type: 'array', items: { type: 'string', enum: ['T1', 'T2', 'T3', 'T4', 'T5', 'T7', 'T8', 'T9'] } },
+        blacklisting: { type: 'string', enum: ['alert', 'freeze', 'old'], description: 'when the fraud address is blacklisted: alert = delays measured on an early-warning list (default, as in our tests), freeze = slower delays measured on stablecoin freezes, old = dates set by hand' },
+        graded_after_days: { type: 'string', enum: ['1', '7', '30', '90', 'end'], description: 'each fraud is graded this many days after its blacklisting (default 90, as in our tests); end = at the end of the simulated period' },
         seed: { type: 'integer', description: 'random seed, to reproduce a world' } } } },
     { name: 'set_rule', description: 'Choose the detection rule and visibility, optionally with custom thresholds, and grade the current world. Returns precision, recall and results by role.',
       input_schema: { type: 'object', properties: {
@@ -46,6 +48,10 @@
       if (input.share_reaching_exchanges) p.cex_share = input.share_reaching_exchanges;
       if (input.patterns && input.patterns.length) p.typologies = input.patterns;
       if (input.seed !== undefined) p.seed = input.seed;
+      // same timing as the simulator form: measured blacklisting dates, graded 90 days later, unless asked otherwise
+      p.blacklist = ['alert', 'freeze', 'old'].includes(input.blacklisting) ? input.blacklisting : 'alert';
+      const after = String(input.graded_after_days ?? '90');
+      if (after !== 'end') p.eval_days = ['1', '7', '30', '90'].includes(after) ? +after : 90;
       const w = await APP.newWorld(p);
       location.hash = '#simulator';
       return { world: { seed: w.seed, frauds: w.frauds.length, accounts: w.n_accounts, receiving_accounts: w.n_rows, roles: w.roles, settings: w.settings,
@@ -61,11 +67,13 @@
       if (input.fan_out_ratio !== undefined) ov.fan_ratio = input.fan_out_ratio;
       if (Object.keys(ov).length && S.engine !== 'ready') return { error: 'Custom thresholds need Python, which is not ready; only the tuned presets are available.' };
       const res = await APP.setRule({ preset: input.preset, visibility: input.visibility, overrides: ov });
+      if (res && res.error) return res;
       location.hash = '#simulator';
       return compact(res);
     }
     if (name === 'show_fraud') {
       const g = await APP.showFraud(input.fraud_id);
+      if (g.error) return g;
       return { fraud: g.fraud, nodes: g.nodes.map(n => n.kind === 'account'
         ? { account: n.aid, exchange: n.exchange, role: n.role, grade: n.grade, ten_k_rule: n.ten_k, received_eur: n.X, share: n.share,
             concentration: n.concentration, passed_on_24h: n.pass_24h, reasons: n.reasons } : n) };
@@ -79,8 +87,8 @@
     return `You are the assistant of the "Fraudster +1" website, a research simulator about finding the accounts involved in a crypto fraud.
 Answer in ${S.lang === 'fr' ? 'French' : 'English'}, briefly and plainly, for a general audience. Use the tools to create worlds, change the rule, or show a fraud; never invent numbers.
 Method: a blacklisted fraud address (seed) sends money, possibly through a collector wallet, to customer accounts at exchanges. Each receiving account gets a grade.
-G1: received >= EUR 100 and a share of the fraud >= 1 % (or >= EUR 10,000, or a common destination). G2: G1, not a victim, and a large enough share (or amount), and relay behaviour (fraud money >= a set share of the account's money over +-15 days, or passed on within 24 h); our lead rule is called revision 2 on the site (preset id rev5); revision 3 adds a fan-out route: several accounts of the same fraud paid similar amounts at about the same time. G3: G2 plus independent evidence (same person at another exchange, or a second fraud paying the account).
-V1 = one exchange alone; V3 = exchanges sharing evidence through our privacy-preserving protocol. The EUR 10k rule flags accounts that received >= EUR 10,000 (or the whole fraud if smaller).
+G1: received >= EUR 100 and a share of the fraud >= 1 % (or >= EUR 10,000, or a common destination). G2: G1, not a victim, and a large enough share (or amount), and relay behaviour (fraud money >= a set share of the account's money over +-15 days, or passed on within 24 h); our lead rule is called revision 2 on the site (preset id rev5); revision 3 adds a fan-out route: several accounts of the same fraud paid similar amounts at about the same time. G3: G2 plus one more clue (same person at another exchange, a second fraud paying the account, or a destination shared with another account of the fraud).
+V1 = one exchange alone; V3 = exchanges sharing evidence through our privacy-preserving protocol. The EUR 10k rule flags accounts that received >= EUR 10,000.
 Roles in the simulation (truth): involved = fraudster's own account (SELF), mule, professional launderer (FACILITATOR); innocent = shops, peer-to-peer sellers, victims receiving refunds, dust, framed customers, bait, landlords; paid accomplices are a secondary target.
 Recall = share of involved accounts found; precision = share of alerts (G2 or more) that are involved. One world has about 40 frauds, so its numbers vary; our thesis numbers come from 20 test worlds (use thesis_results).
 Current state: world seed ${S.world.seed}, ${S.world.frauds.length} frauds; rule ${S.preset} ${S.vis}${Object.keys(S.overrides).length ? ' with custom thresholds' : ''}; showing fraud #${S.fraud}. Python engine: ${S.engine}.`;
@@ -88,25 +96,36 @@ Current state: world seed ${S.world.seed}, ${S.world.frauds.length} frauds; rule
 
   function log(cls, text) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = text; $('#ask-log').appendChild(d); $('#ask-log').scrollTop = 1e9; return d; }
 
+  let asking = false;
   async function ask(question) {
     const T = APP.t;
     if (!key) { log('t', T('ask_need_key')); return; }
+    // The history sent to the API must stay well formed (every tool call followed by its result). `good` is its
+    // length at the last point where it was; after an error or a cut answer, the history goes back to that point.
+    let good = history.length;
     history.push({ role: 'user', content: question });
     log('u', question);
     const thinking = log('t', T('ask_thinking'));
+    asking = true;
     try {
       for (let step = 0; step < 8; step++) {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({ model: MODEL, max_tokens: 1500, system: system(), tools: TOOLS, messages: history }) });
+          body: JSON.stringify({ model: MODEL, max_tokens: 8000, system: system(), tools: TOOLS, messages: history }) });
         const data = await r.json();
         if (!r.ok) throw new Error((data.error && data.error.message) || r.statusText);
-        history.push({ role: 'assistant', content: data.content });
-        const text = data.content.filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+        const content = Array.isArray(data.content) ? data.content : [];
+        const text = content.filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
         if (text) log('a', text);
-        const uses = data.content.filter(c => c.type === 'tool_use');
-        if (!uses.length || data.stop_reason !== 'tool_use') break;
+        if (data.stop_reason === 'refusal') { log('t', T('ask_refused')); break; }
+        const uses = content.filter(c => c.type === 'tool_use');
+        const cut = data.stop_reason === 'max_tokens' || data.stop_reason === 'model_context_window_exceeded';
+        if (cut) log('t', T('ask_cut'));
+        // a cut answer with a tool call cannot be continued (the call may be incomplete); an empty answer cannot be sent back
+        if ((cut && uses.length) || !content.length) break;
+        history.push({ role: 'assistant', content: data.content });      // unchanged, so that every block is kept as received
+        if (!uses.length || data.stop_reason !== 'tool_use') { good = history.length; break; }
         const results = [];
         for (const u of uses) {
           log('t', T('ask_tool', { t: u.name }));
@@ -114,11 +133,11 @@ Current state: world seed ${S.world.seed}, ${S.world.frauds.length} frauds; rule
           results.push({ type: 'tool_result', tool_use_id: u.id, content: JSON.stringify(out).slice(0, 60000) });
         }
         history.push({ role: 'user', content: results });
+        if (step === 7) good = history.length;      // out of steps: the calls and their results are complete, keep them
       }
     } catch (e) {
-      log('t', 'Error: ' + (e.message || e));
-      history.pop();
-    } finally { thinking.remove(); }
+      log('t', T('ask_error', { e: e.message || e }));
+    } finally { history.length = good; asking = false; thinking.remove(); }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -133,6 +152,7 @@ Current state: world seed ${S.world.seed}, ${S.world.frauds.length} frauds; rule
     $('#ask-remember').addEventListener('change', e => { try { e.target.checked ? localStorage.setItem('f1-anthropic-key', key) : localStorage.removeItem('f1-anthropic-key'); } catch (x) {} });
     $('#ask-form').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (!q) return;
       if (!key) { log('t', APP.t('ask_need_key')); $('#ask-key').focus(); return; } // keep the question until a key is entered
+      if (asking) return;                                                              // one question at a time; the text stays in the box
       $('#ask-in').value = ''; ask(q); });
     $('#ask-in').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#ask-form').requestSubmit(); } });
   });

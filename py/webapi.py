@@ -9,7 +9,7 @@ import pandas as pd
 import detectors2 as D2
 import detectors3 as D3
 from configs import TEST3_CFG
-from detectors import b0, labels, score
+from detectors import THETA, labels, score
 from evaltime import candidate_table_at
 from features import candidate_table
 from sim import DAY, NEGATIVE_ROLES, POSITIVE_ROLES, generate_world
@@ -18,14 +18,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RULES = json.load(open(os.path.join(HERE, "rules.json")))
 EXCH = "ABCDEFGH"
 STATE = {}
-
-# what a visitor may change when creating a world (everything else keeps the thesis test settings)
-WORLD_KEYS = {
-    "n_seeds": int, "k_min": int, "k_max": int, "split_spread": float, "mule_window_h": float,
-    "cex_share": float, "p_collector": float, "p_cluster_miss": float, "p_framing": float, "p_p2p": float, "p_landlord": float,
-    "typologies": list, "blacklist": str, "eval_days": float,
-}
-
 
 def _f(x, nd=4):
     x = float(x)
@@ -45,6 +37,8 @@ def new_world(params="{}"):
         kw["split_spread"] = float(p.get("split_spread", 0.2))
     for k in ("cex_share", "p_collector", "p_cluster_miss", "p_framing", "p_p2p", "p_landlord"):
         if k in p: kw[k] = float(p[k])
+    if "cex_share" in kw:                       # same range as the slider; 0 would divide by zero in the simulator
+        kw["cex_share"] = min(1.0, max(0.1, kw["cex_share"]))
     if "p_collector" in p:
         kw["p_collector_range"] = None          # a fixed value chosen by the visitor replaces the per-world draw
     if p.get("typologies"): kw["typologies"] = tuple(p["typologies"])
@@ -109,13 +103,14 @@ def grade(spec="{}"):
     rule, vis = _rule(spec)
     g1, g2, g3, ch = D3.parts(df, rule, vis)
     grades = g1.astype(int) + g2.astype(int) + g3.astype(int)
-    ten = b0(df).values
+    ten = df.X.values >= THETA             # the plain EUR 10,000 rule: the account received at least 10,000 (no 'or the whole fraud')
     flag = ten if spec.get("preset") == "10k" else grades >= 2
     pos, neg = (m.values for m in labels(df))
     sig = df[f"X_{vis}"].values / df.out2.values
     fan_n = D3.fan_counts(df, vis, rule.fan_dt, rule.fan_ratio, rule.x_min,
                           rule.sigma_g1 if rule.sigma_g1 is not None else rule.sigma) if rule.fan_k > 0 else np.zeros(len(df), int)
-    STATE.update(rule=rule, vis=vis, grades=grades, flag=flag, ch=ch, sig=sig, fan_n=fan_n, ten=ten,
+    theta = D2.amount_ok(df[f"X_{vis}"].values, df, rule)      # the amount branch exactly as the grades use it
+    STATE.update(rule=rule, vis=vis, grades=grades, flag=flag, ch=ch, sig=sig, fan_n=fan_n, ten=ten, theta=theta,
                  preset=spec.get("preset", "rev5"))
 
     def metrics(f):
@@ -139,28 +134,6 @@ def grade(spec="{}"):
                            frauds_with_one_found=_f(fr.mean()) if len(fr) else None))
 
 
-def timeline(spec="{}"):
-    """Same world and same rule, graded at tau + 1 / 7 / 30 / 90 days and at the end of the horizon."""
-    spec = json.loads(spec) if isinstance(spec, str) else dict(spec)
-    rule, vis = _rule(spec)
-    w, seed = STATE["w"], STATE["seed"]
-    out = []
-    for d in (1, 7, 30, 90, None):
-        df = (D2.add_ms_columns(candidate_table(w, world_id=seed)) if d is None
-              else candidate_table_at(w, float(d) * DAY, world_id=seed)).reset_index(drop=True)
-        g1, g2, g3, ch = D3.parts(df, rule, vis)
-        grades = g1.astype(int) + g2.astype(int) + g3.astype(int)
-        ten = b0(df).values
-        flag = ten if spec.get("preset") == "10k" else grades >= 2
-
-        def m(f):
-            s_ = score(df, pd.Series(f, index=df.index))
-            return dict(precision=_f(s_["precision"]), recall=_f(s_["recall"]), value_recall=_f(s_["value_recall"]),
-                        found=int(s_["tp"]), false_alerts=int(s_["fp"]))
-        out.append(dict(days=d, selected=m(flag), g3=m(grades >= 3), ten_k=m(ten)))
-    return json.dumps(out)
-
-
 def _rule_public(r):
     return dict(g1_share=r.sigma_g1, g2_share=r.sigma, concentration=r.kappa, pass_through=r.pi,
                 window_h=r.delta, behaviour_mode=r.mode, second_seed_floor=r.ms_floor,
@@ -171,12 +144,13 @@ def _reasons(i):
     df, r, vis = STATE["df"], STATE["rule"], STATE["vis"]
     row = df.iloc[i]
     sig = STATE["sig"][i]
-    theta = row[f"X_{vis}"] >= min(10_000.0, row.F_known)
+    theta = STATE["theta"][i]
     conv = row[f"conv_{vis}"] == 1
     k_ok = row.kappa2 >= r.kappa
     p_ok = row[f"pi_{r.delta}"] >= r.pi
     return dict(
         amount_ok=bool(row.X >= r.x_min), share_g1=bool(sig >= (r.sigma_g1 or r.sigma)), big_amount=bool(theta),
+        whole_fraud=bool(r.whole_fraud),        # True: the amount branch is X >= min(10k, fraud size); False: X >= 10k
         common_destination=bool(conv), share_g2=bool(sig >= r.sigma), concentration_ok=bool(k_ok),
         pass_through_ok=bool(p_ok), victim=bool(row.v == 1),
         dominant=bool(sig >= r.sigma_dom and p_ok), fan_siblings=int(STATE["fan_n"][i]),
