@@ -9,7 +9,7 @@ import pandas as pd
 import detectors2 as D2
 import detectors3 as D3
 from configs import TEST3_CFG
-from detectors import b0, labels, score
+from detectors import THETA, labels, score
 from evaltime import candidate_table_at
 from features import candidate_table
 from sim import DAY, NEGATIVE_ROLES, POSITIVE_ROLES, generate_world
@@ -103,7 +103,7 @@ def grade(spec="{}"):
     rule, vis = _rule(spec)
     g1, g2, g3, ch = D3.parts(df, rule, vis)
     grades = g1.astype(int) + g2.astype(int) + g3.astype(int)
-    ten = b0(df).values
+    ten = df.X.values >= THETA             # the plain EUR 10,000 rule: the account received at least 10,000 (no 'or the whole fraud')
     flag = ten if spec.get("preset") == "10k" else grades >= 2
     pos, neg = (m.values for m in labels(df))
     sig = df[f"X_{vis}"].values / df.out2.values

@@ -1,6 +1,16 @@
 {
  "main_E": {
   "ten_k": {
+   "precision": 0.8037,
+   "prec_lo": 0.76,
+   "prec_hi": 0.8477,
+   "recall": 0.1497,
+   "rec_lo": 0.1313,
+   "rec_hi": 0.1706,
+   "value_recall": 0.6298,
+   "fp_per_fraud": 0.1187
+  },
+  "ten_k_paper": {
    "precision": 0.7734,
    "prec_lo": 0.7316,
    "prec_hi": 0.8172,
@@ -137,7 +147,7 @@
   },
   "paid accomplice (secondary)": {
    "n": 1646,
-   "ten_k": 0.0134,
+   "ten_k": 0.0128,
    "rev3": 0.0255,
    "rev5": 0.0152
   }
@@ -189,6 +199,14 @@
    "blacklist": "old",
    "days": 1,
    "detector": "B0 10k per exchange",
+   "precision": 0.7449,
+   "recall": 0.0999,
+   "fp_per_fraud": 0.11
+  },
+  {
+   "blacklist": "old",
+   "days": 1,
+   "detector": "B0 paper",
    "precision": 0.7139,
    "recall": 0.0999,
    "fp_per_fraud": 0.1288
@@ -229,6 +247,14 @@
    "blacklist": "old",
    "days": 7,
    "detector": "B0 10k per exchange",
+   "precision": 0.754,
+   "recall": 0.1477,
+   "fp_per_fraud": 0.155
+  },
+  {
+   "blacklist": "old",
+   "days": 7,
+   "detector": "B0 paper",
    "precision": 0.7197,
    "recall": 0.1477,
    "fp_per_fraud": 0.185
@@ -269,6 +295,14 @@
    "blacklist": "old",
    "days": 30,
    "detector": "B0 10k per exchange",
+   "precision": 0.7568,
+   "recall": 0.1512,
+   "fp_per_fraud": 0.1562
+  },
+  {
+   "blacklist": "old",
+   "days": 30,
+   "detector": "B0 paper",
    "precision": 0.719,
    "recall": 0.1512,
    "fp_per_fraud": 0.19
@@ -309,6 +343,14 @@
    "blacklist": "old",
    "days": 90,
    "detector": "B0 10k per exchange",
+   "precision": 0.7568,
+   "recall": 0.1512,
+   "fp_per_fraud": 0.1562
+  },
+  {
+   "blacklist": "old",
+   "days": 90,
+   "detector": "B0 paper",
    "precision": 0.7151,
    "recall": 0.1512,
    "fp_per_fraud": 0.1938
@@ -349,6 +391,14 @@
    "blacklist": "old",
    "days": 365,
    "detector": "B0 10k per exchange",
+   "precision": 0.7452,
+   "recall": 0.1512,
+   "fp_per_fraud": 0.1663
+  },
+  {
+   "blacklist": "old",
+   "days": 365,
+   "detector": "B0 paper",
    "precision": 0.7014,
    "recall": 0.1516,
    "fp_per_fraud": 0.2075
@@ -389,6 +439,14 @@
    "blacklist": "alert",
    "days": 1,
    "detector": "B0 10k per exchange",
+   "precision": 0.7426,
+   "recall": 0.0577,
+   "fp_per_fraud": 0.065
+  },
+  {
+   "blacklist": "alert",
+   "days": 1,
+   "detector": "B0 paper",
    "precision": 0.7246,
    "recall": 0.0577,
    "fp_per_fraud": 0.0712
@@ -429,6 +487,14 @@
    "blacklist": "alert",
    "days": 7,
    "detector": "B0 10k per exchange",
+   "precision": 0.7546,
+   "recall": 0.0781,
+   "fp_per_fraud": 0.0825
+  },
+  {
+   "blacklist": "alert",
+   "days": 7,
+   "detector": "B0 paper",
    "precision": 0.7276,
    "recall": 0.0781,
    "fp_per_fraud": 0.095
@@ -469,6 +535,14 @@
    "blacklist": "alert",
    "days": 30,
    "detector": "B0 10k per exchange",
+   "precision": 0.7888,
+   "recall": 0.1193,
+   "fp_per_fraud": 0.1037
+  },
+  {
+   "blacklist": "alert",
+   "days": 30,
+   "detector": "B0 paper",
    "precision": 0.7598,
    "recall": 0.1193,
    "fp_per_fraud": 0.1225
@@ -509,6 +583,14 @@
    "blacklist": "alert",
    "days": 90,
    "detector": "B0 10k per exchange",
+   "precision": 0.8037,
+   "recall": 0.1497,
+   "fp_per_fraud": 0.1187
+  },
+  {
+   "blacklist": "alert",
+   "days": 90,
+   "detector": "B0 paper",
    "precision": 0.7734,
    "recall": 0.1497,
    "fp_per_fraud": 0.1425
@@ -549,6 +631,14 @@
    "blacklist": "alert",
    "days": 365,
    "detector": "B0 10k per exchange",
+   "precision": 0.8026,
+   "recall": 0.1643,
+   "fp_per_fraud": 0.1313
+  },
+  {
+   "blacklist": "alert",
+   "days": 365,
+   "detector": "B0 paper",
    "precision": 0.767,
    "recall": 0.1647,
    "fp_per_fraud": 0.1625
@@ -589,6 +679,14 @@
    "blacklist": "freeze",
    "days": 1,
    "detector": "B0 10k per exchange",
+   "precision": 0.8237,
+   "recall": 0.1486,
+   "fp_per_fraud": 0.1025
+  },
+  {
+   "blacklist": "freeze",
+   "days": 1,
+   "detector": "B0 paper",
    "precision": 0.8097,
    "recall": 0.1486,
    "fp_per_fraud": 0.1125
@@ -629,6 +727,14 @@
    "blacklist": "freeze",
    "days": 7,
    "detector": "B0 10k per exchange",
+   "precision": 0.8142,
+   "recall": 0.1649,
+   "fp_per_fraud": 0.1212
+  },
+  {
+   "blacklist": "freeze",
+   "days": 7,
+   "detector": "B0 paper",
    "precision": 0.7989,
    "recall": 0.1649,
    "fp_per_fraud": 0.1338
@@ -669,6 +775,14 @@
    "blacklist": "freeze",
    "days": 30,
    "detector": "B0 10k per exchange",
+   "precision": 0.813,
+   "recall": 0.1652,
+   "fp_per_fraud": 0.1225
+  },
+  {
+   "blacklist": "freeze",
+   "days": 30,
+   "detector": "B0 paper",
    "precision": 0.7933,
    "recall": 0.1652,
    "fp_per_fraud": 0.1388
@@ -709,6 +823,14 @@
    "blacklist": "freeze",
    "days": 90,
    "detector": "B0 10k per exchange",
+   "precision": 0.8114,
+   "recall": 0.1652,
+   "fp_per_fraud": 0.1237
+  },
+  {
+   "blacklist": "freeze",
+   "days": 90,
+   "detector": "B0 paper",
    "precision": 0.7889,
    "recall": 0.1652,
    "fp_per_fraud": 0.1425
@@ -749,6 +871,14 @@
    "blacklist": "freeze",
    "days": 365,
    "detector": "B0 10k per exchange",
+   "precision": 0.8026,
+   "recall": 0.1656,
+   "fp_per_fraud": 0.1313
+  },
+  {
+   "blacklist": "freeze",
+   "days": 365,
+   "detector": "B0 paper",
    "precision": 0.7684,
    "recall": 0.166,
    "fp_per_fraud": 0.1613

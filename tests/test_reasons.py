@@ -32,7 +32,7 @@ def card_grade(r, fan_on):
 
 
 def test_reasons():
-    n = 0
+    n = whole_small = 0
     bad = []
     for params in WORLDS:
         w = json.loads(webapi.new_world(json.dumps(params)))
@@ -51,6 +51,11 @@ def test_reasons():
                     where = (params["seed"], params.get("blacklist", "old"), preset, vis, bool(overrides), f["id"], node["aid"])
                     if card_grade(r, g["rule"]["fan_k"] > 0) != node["grade"]:
                         bad.append(("card and grade differ", where, node["grade"], r))
+                    # the EUR 10k rule of the page is the plain one: the account received at least EUR 10,000
+                    if node["ten_k"] != (node["X"] >= 10000) and abs(node["X"] - 10000) > 1:
+                        bad.append(("EUR 10k flag is not X >= 10,000", where, node["X"]))
+                    if node["X"] < 10000 and F_known is not None and node["X"] >= F_known + 1:
+                        whole_small += 1          # received a whole small fraud: flagged by the earlier-paper rule only
                     if r["whole_fraud"] != whole:
                         bad.append(("whole_fraud flag", where))
                     # the label of the amount line: ">= EUR 10,000" unless the rule keeps the whole-fraud branch
@@ -61,8 +66,10 @@ def test_reasons():
                         bad.append(("amount line and min(10k, fraud size)", where, node["X"], F_known))
     assert n > 3000, n
     assert not bad, f"{len(bad)} contradictions out of {n} cards, first ones:\n" + "\n".join(map(str, bad[:8]))
-    return n
+    return n, whole_small
 
 
 if __name__ == "__main__":
-    print(f"ok: {test_reasons()} account cards agree with their grade")
+    cards, small = test_reasons()
+    print(f"ok: {cards} account cards agree with their grade; the EUR 10k flag is X >= 10,000 "
+          f"({small} cards got a whole fraud below 10,000 and are not flagged)")

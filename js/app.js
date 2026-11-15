@@ -137,11 +137,14 @@ const APP = (() => {
       ` <a class="cite" href="#results">${esc(t('cite_b1'))}</a>`;
     // the three headline measures side by side: found, precision, money covered (same 20 test worlds)
     const hm = [['key_found', 'recall'], ['key_prec', 'precision'], ['key_money', 'value_recall']];
-    if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div>');
+    if (!$('#key3')) $('#p1').insertAdjacentHTML('afterend', '<div class="tablewrap" id="key3"></div><p class="note" id="key3-note"></p>');
+    $('#key3-note').textContent = t('key3_note');
     $('#key3').innerHTML = `<table class="t"><caption>${esc(t('key3_cap'))}</caption><thead><tr><th scope="col"></th><th scope="col" class="n">${esc(t('key_rule10'))}</th><th scope="col" class="n">${esc(t('hero_grades'))}</th></tr></thead><tbody>` +
       hm.map(([lab, k]) => `<tr><th scope="row" style="font-weight:500">${esc(t(lab))}</th><td class="n">${pct(m.ten_k[k], 0)}</td><td class="n"><mark>${pct(m.rev5_V3[k], 0)}</mark></td></tr>`).join('') + '</tbody></table>';
     const c = S.thesis.real.check_90d;
-    $('#key-real').textContent = t('key_real', { g3: pct(c.G3.either, 0), g0: pct(c['grade 0'].either, 0) });
+    const g0 = c['grade 0'], p0 = (x) => (100 * x).toFixed(0);
+    $('#key-real').textContent = t('key_real', { g3: pct(c.G3.either, 0), n3: c.G3.accounts, lo3: p0(c.G3.lo), hi3: p0(c.G3.hi),
+      g0: pct(g0.either, 0), n0: g0.accounts, lo0: p0(g0.lo), hi0: p0(g0.hi) });
     $('#ba-bars').style.setProperty('--guide', `${(100 * m.ten_k.recall).toFixed(1)}%`);
     $('#ba-bars').innerHTML = [['ten_k', 'key_rule10'], ['rev5_V3', 'key_rev5']].map(([key, lab]) =>
       `<div class="bar-row${key === 'rev5_V3' ? ' lead' : ''}"><span class="name">${esc(t(lab))}</span><span class="track" aria-hidden="true"><i style="width:${(100 * m[key].recall).toFixed(1)}%"></i></span><span class="val">${pct(m[key].recall, 0)}</span></div>`).join('');
@@ -340,7 +343,7 @@ const APP = (() => {
     const li = (ok, txt) => `<li class="${ok ? 'y' : 'n'}">${mark(ok)}<span><span class="sr-only">${ok ? t('yes') : t('no')}: </span>${esc(txt)}</span></li>`;
     const or = S.lang === 'fr' ? ' ou ' : ' or ';
     const g1 = li(r.amount_ok, t('r_amount')) + li(r.share_g1 || r.big_amount || r.common_destination,
-      [t('r_share1', { v: pct(rule.g1_share, 0) }), t(r.whole_fraud === false ? 'r_big_10k' : 'r_big'), t('r_conv')].join(or));
+      [t('r_share1', { v: pct(rule.g1_share, 0) }), t(r.whole_fraud === false ? (S.res.vis === 'V3' ? 'r_big_10k_all' : 'r_big_10k') : 'r_big'), t('r_conv')].join(or));
     const g2 = li(r.share_g2 || r.big_amount || r.common_destination, t('r_share2', { v: pct(rule.g2_share, 0) }) + (S.lang === 'fr' ? ' (ou montant / destination)' : ' (or amount / destination)')) +
       li(r.concentration_ok || r.pass_through_ok, t('r_kappa', { v: pct(rule.concentration, 0) }) + or + t('r_pi', { v: pct(rule.pass_through, 0) })) +
       (rule.fan_k > 0 ? li(r.fan_route, t('r_fan', { n: r.fan_siblings, h: rule.fan_window_h, k: rule.fan_k })) : '') +
@@ -393,12 +396,16 @@ const APP = (() => {
     $('#roles').innerHTML = `<div class="h">${t('role_h')}</div>` + pos.map(x => row(x, '')).join('') + neg.map(x => row(x, 'neg')).join('');
   }
   /* stable values: the robust zone of the searched thresholds (results8/zone_robust.json) */
+  // from zone_robust.json (experiments17c), given by the author on 15 Nov 2026: these two ranges are not in data/thesis.json
+  const ZONE_OTHER_RANGES = { sigma_dom: [0.1, 0.15, 0.2, 0.3, 0.5, 'off'], amount_route: ['on', 'off'] };
   function renderStable() {
     const box = $('#stable-box'); const z = S.thesis && S.thesis.zone; if (!box || !z) return;
     const v = z.values, rng = (a) => a.length === 1 ? pct(a[0], 0) : `${pct(Math.min(...a), 0)} – ${pct(Math.max(...a), 0)}`;
     const rows = [[t('sl_g2share'), rng(v.sigma), t('stable_fixed')], [t('stable_delta'), v.delta.map(d => `${d} h`).join(', '), t('stable_fixed')],
-      [t('sl_kappa'), rng(v.kappa), t('stable_free')], [t('sl_pi'), rng(v.pi), t('stable_free')]];
-    box.innerHTML = `<h3 class="subhead">${esc(t('stable_h'))}</h3><div class="tablewrap"><table class="t"><caption>${esc(t('stable_cap'))}</caption><thead><tr><th scope="col">${esc(t('stable_value'))}</th><th scope="col" class="n">${esc(t('stable_range'))}</th><th scope="col">${esc(t('stable_status'))}</th></tr></thead><tbody>` +
+      [t('sl_kappa'), rng(v.kappa), t('stable_free')], [t('sl_pi'), rng(v.pi), t('stable_free')],
+      [t('stable_dom'), t('stable_or_off', { v: ZONE_OTHER_RANGES.sigma_dom.filter(x => x !== 'off').map(x => pct(x, 0)).join(', ') }), t('stable_any')],
+      [t('stable_amt'), t('stable_onoff'), t('stable_any')]];
+    box.innerHTML = `<h3 class="subhead">${esc(t('stable_h'))}</h3><div class="tablewrap"><table class="t"><caption>${esc(t('stable_cap') + ' ' + t('stable_size', { size: z.size }))}</caption><thead><tr><th scope="col">${esc(t('stable_value'))}</th><th scope="col" class="n">${esc(t('stable_range'))}</th><th scope="col">${esc(t('stable_status'))}</th></tr></thead><tbody>` +
       rows.map(r => `<tr><th scope="row">${esc(r[0])}</th><td class="n">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('') + '</tbody></table></div>';
   }
   async function newWorld(params) {
@@ -482,6 +489,8 @@ const APP = (() => {
     if (!S.thesis) return;
     if (typeof Chart !== 'undefined') { Chart.defaults.font.family = '"Geist", system-ui, sans-serif'; Chart.defaults.font.size = 13; Chart.defaults.color = '#3a4452'; }
     const m = S.thesis.main_E;
+    renderHold();
+    $('#res-base-note').textContent = t('res_base_note', { p: pct(m.ten_k_paper.precision) });
     const L = { ten_k: t('preset_10k'),
       rev5_V1: `${t('preset_rev5')} (${t('vis_v1').toLowerCase()})`, rev5_V3: `${t('preset_rev5')} (${t('vis_v3').toLowerCase()})`,
       rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})` };
@@ -527,6 +536,42 @@ const APP = (() => {
     const sk = S.thesis.sweep_k, kk = [...new Set(sk.map(x => x.k))];
     const kser = (det, k) => kk.map(v => 100 * sk.find(x => x.k === v && x.detector === det)[k]);
     chart('ch-k', { type: 'line', data: { labels: kk.map(v => v + ' mules'), datasets: lines(kser) }, options: { scales: { y: pctAxis } } });
+  }
+
+  /* ---------------------------------------------------------------- what the simulator assumes, and how far the results hold (data/stress.json) */
+  function renderHold() {
+    const st = S.stress, m = S.thesis.main_E; if (!st) return;
+    const W = '0.5';                                   // the main world: half of the fraud money reaches our exchanges
+    const base = st.base[W], meta = st.meta, cd = st.common_destination;
+    $('#res-intro').textContent = t('res_intro', { n: num(meta.involved), out: num(meta.involved_all - meta.involved),
+      all: pct(cd.found_total / meta.involved_all), lead: pct(m.rev5_V3.recall) });
+    const ir = st.innocents.by_role;
+    const items = [[t('assume_1_t'), t('assume_1_d', { mx: pct(Math.max(ir.FRAMED.max, ir.BAIT.max), 0), v: ir.VICTIM.ge20, u: pct(st.innocents.under_10pct, 0), ll: ir.LANDLORD.ge20, p2p: ir.P2P.ge20, n: num(st.innocents.accounts),
+      llf: ir.LANDLORD.ge20_flagged, p2pf: ir.P2P.ge20_flagged })], [t('assume_2_t'), t('assume_2_d')], [t('assume_3_t'), t('assume_3_d')], [t('assume_4_t'), t('assume_4_d')]];
+    $('#assume-list').innerHTML = items.map(([a, b]) => `<li><b>${esc(a)}</b> ${esc(b)}</li>`).join('');
+    const cap = (n, txt) => `<caption><span class="tag">${t('tbl')} ${n}</span>${esc(txt)}</caption>`;
+    const cell = (x) => `<td class="n">${x === undefined || x === null ? '–' : pct(x)}</td>`;
+    const of = (p) => esc(t('hold_of_frauds', { p: pct(p, 0) }));
+    // table 2: one innocent account receives a large share
+    const one = (kind, p, s, cex = 0.5) => st.one_account.find(r => r.cex === cex && r.kind === kind && r.p === p && r.s === s) || {};
+    const ps = [0.05, 0.1, 0.3], shares = [0.1, 0.2, 0.3], pTen = 0.1;
+    $('#hold-t1').innerHTML = `<table class="t">${cap(2, t('hold_t1'))}<thead><tr><th scope="col" rowspan="2">${esc(t('hold_share'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_ordinary'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_seller'))}</th><th scope="col" class="n">${esc(t('preset_10k'))}</th></tr>` +
+      `<tr>${['ordinary', 'seller'].map(() => ps.map(p => `<th scope="col" class="n">${of(p)}</th>`).join('')).join('')}<th scope="col" class="n">${of(pTen)}</th></tr></thead><tbody>` +
+      `<tr><th scope="row">${esc(t('hold_none'))}</th>${['ordinary', 'seller'].map(() => ps.map(() => cell(base.g2.precision)).join('')).join('')}${cell(base.ten_k.precision)}</tr>` +
+      shares.map(s => `<tr><th scope="row">${pct(s, 0)}</th>${['ordinary', 'seller'].map(k => ps.map(p => cell(one(k, p, s).g2)).join('')).join('')}${cell(one('ordinary', pTen, s).ten_k)}</tr>`).join('') + '</tbody></table>';
+    // table 3: the same innocent person at two exchanges
+    const S2 = 0.2, two = (kind, p, cex = 0.5) => st.two_exchanges.find(r => r.cex === cex && r.kind === kind && r.p === p && r.s === S2) || {};
+    const kinds = [['ordinary', 'hold_ordinary'], ['seller', 'hold_seller']];
+    $('#hold-t2').innerHTML = `<table class="t">${cap(3, t('hold_t2', { s: pct(S2, 0) }))}<thead><tr><th scope="col">${esc(t('hold_innocent'))}</th><th scope="col" class="n">${esc(t('hold_frauds'))}</th><th scope="col" class="n">${esc(t('hold_g2'))}</th><th scope="col" class="n">G3</th><th scope="col" class="n">${esc(t('hold_g3_nosame'))}</th></tr></thead><tbody>` +
+      `<tr><th scope="row">${esc(t('hold_none2'))}</th><td class="n">–</td>${cell(base.g2.precision)}${cell(base.g3.precision)}${cell(base.g3_no_same.precision)}</tr>` +
+      kinds.map(([k, lab]) => [0.05, 0.1].map(p => { const r = two(k, p); return `<tr><th scope="row">${esc(t(lab))}</th><td class="n">${pct(p, 0)}</td>${cell(r.g2)}${cell(r.g3)}${cell(r.g3_no_same)}</tr>`; }).join('')).join('') + '</tbody></table>';
+    $('#hold-read').textContent = t('hold_read', { x: pct(one('seller', 0.05, 0.2).g2), y: pct(one('seller', 0.05, 0.2, 0.3).g2), z: pct(one('seller', 0.1, 0.2).g2), w: pct(one('ordinary', 0.1, 0.2).g2),
+      g3: pct(base.g3.precision, 0), g3s: pct(two('seller', 0.05).g3), g3n: pct(base.g3_no_same.precision, 0), fn: pct(base.g3_no_same.found), f3: pct(base.g3.found) });
+    $('#hold-real').textContent = t('hold_real', { n: num(st.real.seeds), a: pct(st.real.one_account_ge20), b: pct(st.real.two_exchanges_ge10) });
+    // table 4: the shared destination
+    $('#hold-t3').innerHTML = `<table class="t">${cap(4, t('hold_t3'))}<thead><tr><th scope="col">${esc(t('hold_dest_col'))}</th><th scope="col" class="n">${esc(t('hold_prec'))}</th><th scope="col" class="n">${esc(t('hold_found'))}</th><th scope="col" class="n">${esc(t('hold_found_g3'))}</th></tr></thead><tbody>` +
+      cd.rows.map(r => `<tr${r.share === 0.5 ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${pct(r.share, 0)}${r.share === 0.5 ? ` (${esc(t('hold_ours'))})` : ''}</th>${cell(r.g2)}${cell(r.found)}${cell(r.found_g3)}</tr>`).join('') + '</tbody></table>';
+    $('#hold-dest').textContent = t('hold_dest_p', { only: num(cd.found_only_by_it), tot: num(cd.found_total) });
   }
 
   /* ---------------------------------------------------------------- real data */
@@ -599,10 +644,11 @@ const APP = (() => {
     ['US Federal Reserve H.10 exchange rates (EUR/USD), via datasets/exchange-rates', 'https://github.com/datasets/exchange-rates'],
     ['RUSI, Following the Fraud: The Role of Money Mules (Lloyds data)', 'https://www.rusi.org/explore-our-research/publications/emerging-insights/following-fraud-role-money-mules'],
     ['Vocalink / Mastercard, The rise of the mule (2nd ed., 2019)', 'https://b2b.mastercard.com/media/1fsooyfv/the-rise-of-the-mule-second-edition.pdf'],
-    ['FCA, Proceeds of fraud – detecting and preventing money mules', 'https://www.fca.org.uk/publications/multi-firm-reviews/proceeds-fraud-detecting-preventing-money-mules'],
+    ['FCA, Money mules: mule activity and cashing out findings (23 Sep 2026): 47.1 % of the accounts whose tenure is known (114,984) were closed within their first year', 'https://www.fca.org.uk/publications/multi-firm-reviews/money-mules-activity-cashing-out-findings'],
+    ['Chainalysis, Money Laundering and Cryptocurrency (July 2024): over 50 % of illicit funds end at centralized exchanges, directly or after obfuscation; figure from the full report, quoted by the press (Crypto Briefing)', 'https://www.chainalysis.com/blog/money-laundering-cryptocurrency/'],
     ['Sun et al., MonLAD: Money Laundering Agents Detection in Transaction Streams (WSDM 2022)', 'https://arxiv.org/abs/2201.10051'],
     ['Altman et al., Realistic Synthetic Financial Transactions for AML Models (NeurIPS 2023)', 'https://arxiv.org/abs/2306.16424'],
-    ['Griffin & Mei, How Do Crypto Flows Finance Slavery? The Economics of Pig Butchering', 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4742235'],
+    ['Griffin & Mei, How Do Crypto Flows Finance Slavery? The Economics of Pig Butchering (version 1, February 2024: $4.3B traced to exchanges out of more than $5B)', 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4742235'],
     ['Pyodide (Python in the browser)', 'https://pyodide.org'],
   ];
   function renderSources() { $('#src-list').innerHTML = SOURCES.map(([n, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join(''); }
@@ -651,15 +697,15 @@ const APP = (() => {
     S.lang = saved || ((navigator.language || '').toLowerCase().startsWith('fr') ? 'fr' : 'en');
     readUrl(); wire(); route();
     const get = async (url) => { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r.json(); };
-    let th, def;
+    let th, def, stress;
     try {
-      [th, def] = await Promise.all([get('data/thesis.json'), get('data/world_default.json')]);
+      [th, def, stress] = await Promise.all([get('data/thesis.json'), get('data/world_default.json'), get('data/stress.json')]);
     } catch (e) {
-      // the texts still appear; the figures, the tables and the simulator need the two data files
+      // the texts still appear; the figures, the tables and the simulator need the data files
       S.loadError = true; applyLang();
       return;
     }
-    S.thesis = th; S.def = def; S.world = def.world; S.world.params = def.world.params || {};
+    S.thesis = th; S.stress = stress; S.def = def; S.world = def.world; S.world.params = def.world.params || {};
     if (S.urlAcc) { S.selected = S.urlAcc; S.urlAcc = undefined; }
     applyLang();
     await regrade(false);
