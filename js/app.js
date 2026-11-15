@@ -152,10 +152,22 @@ const APP = (() => {
     renderHero(); renderWorldPreview();
   }
   // the hero: one fraud of world 2027, switched between the €10k rule and the grades
-  function heroFraud() {
-    const fr = S.def.world.frauds.filter(f => ['T4', 'T5', 'T3'].includes(f.pattern)).sort((a, b) => b.accounts - a.accounts);
-    return (fr[0] || S.def.world.frauds[0]).id;
+  // The home-page example, chosen by a rule: the fraud of world 2027 where our grades find the most involved accounts
+  // beyond the EUR 10k rule (ties: the fraud with more accounts). The caption gives the totals of the whole world.
+  function heroStats() {
+    if (S.hero) return S.hero;
+    const G = S.def.graphs['rev5|V3'], T = S.def.graphs['10k|V3'];
+    const count = (g, pr) => { const inv = g.nodes.filter(n => n.kind === 'account' && NET.INVOLVED.has(n.role)); return [inv.length, inv.filter(n => NET.flagged(n, pr)).length]; };
+    let id = S.def.world.frauds[0].id, gain = -1, size = -1, frauds = 0, inv = 0, ours = 0, ten = 0;
+    for (const f of S.def.world.frauds) {
+      const [n, a] = count(G[String(f.id)], 'rev5'), [, b] = count(T[String(f.id)], '10k');
+      if (!n) continue;
+      frauds++; inv += n; ours += a; ten += b;
+      if (a - b > gain || (a - b === gain && f.accounts > size)) { gain = a - b; size = f.accounts; id = f.id; }
+    }
+    return (S.hero = { id, frauds, inv, ours, ten });
   }
+  function heroFraud() { return heroStats().id; }
   function renderHero() {
     if (!S.def) return;
     const id = heroFraud(), pr = S.heroPreset;
@@ -168,7 +180,7 @@ const APP = (() => {
     const acc = g.nodes.filter(n => n.kind === 'account');
     const inv = acc.filter(n => NET.INVOLVED.has(n.role)), hit = inv.filter(n => NET.flagged(n, pr));
     $('#hero-readout').innerHTML = t('hero_readout', { rule: esc(pr === '10k' ? t('hero_by_10k') : t('hero_by_grades')), f: hit.length, n: inv.length });
-    $('#hero-caption').textContent = t('hero_caption', { id });
+    const hs = heroStats(); $('#hero-caption').textContent = t('hero_caption', { id, frauds: hs.frauds, inv: hs.inv, ours: hs.ours, ten: hs.ten });
     $('#hero-net').setAttribute('aria-label', t('net_label', { id, n: acc.length, e: new Set(acc.map(a => a.exchange)).size }));
   }
   // the whole world, from the pre-generated graphs (Python not needed)
@@ -241,6 +253,7 @@ const APP = (() => {
   }
   function pickFraud() {
     if (S.urlFraud !== undefined && S.world.frauds.some(f => f.id === S.urlFraud)) { const f = S.urlFraud; S.urlFraud = undefined; return f; }
+    if (S.def && S.world.seed === S.def.world.seed && S.world.frauds.length === S.def.world.frauds.length) return heroFraud();   // the stored world opens on the home-page example
     const fr = S.world.frauds.filter(f => ['T4', 'T5', 'T3'].includes(f.pattern)).sort((a, b) => b.accounts - a.accounts);
     return (fr[0] || S.world.frauds[0]).id;
   }
