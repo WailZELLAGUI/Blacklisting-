@@ -71,6 +71,11 @@ points, not predictions.
   whose tenure is known (114,984) were closed within their first year.
 - The number of exchange accounts and of innocent accounts paid by each fraud has no public source; it stays an
   assumption of the simulator (2 to 10 payments to the fraud's handlers).
+- Fraud size is set by hand (median €30,000). Our sample of 1,448 real phishing addresses (Ethereum, ScamSniffer list,
+  Jul 2022 - Feb 2023) sends a median of €1,874; other kinds of fraud are larger. On 20 new worlds (16000-16019) drawn
+  from that sample, G2 or G3 keeps about the same false alerts per fraud (0.06 to 0.09) but finds fewer involved
+  accounts, so its precision is 88.0 to 91.6 %; peer-to-peer resale lowers it further (Table 5 of the Results page).
+  The sweep was fixed before it was run (`preregistration_p2p.md` and `experiments21.py` in the research code).
 
 **The lead rule, shown as "Revision 2"** (`rev5` in the code: G2 share 20 %, concentration 50 %, 90 % passed on within
 24 h, either one). The thresholds are not one "right" point: the site's box "Stable values" shows the value sets that keep

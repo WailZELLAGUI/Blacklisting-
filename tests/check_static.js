@@ -37,6 +37,7 @@ const DYNAMIC = {
   preset_: ['10k', 'rev5', 'rev3'],            // t('preset_' + S.preset), t('preset_' + k.slice(0, 4))
   bl_: ['old', 'alert', 'freeze'],             // t('bl_' + settings.blacklist)
   eval_: ['1', '7', '30', '90', 'end'],        // t('eval_' + settings.eval_days)
+  hold_c_: ['reference', 'sample_fixed', 'sample_prop'],   // t('hold_c_' + id), Table 5 of the Results page
 };
 const used = new Set();
 for (const m of html.matchAll(/data-i18n="([^"]+)"/g)) used.add(m[1]);

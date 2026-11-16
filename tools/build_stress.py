@@ -1,9 +1,12 @@
 """Builds data/stress.json (the "How far the results hold" tables of the Results page) from the result files of
 experiments19.py, experiments19b.py, experiments19c.py (stress tests on the 20 test worlds, tau + 90 d, frozen rules),
-innocents.csv (shares received by innocent accounts in the base worlds) and realdata/out/share_bounds.json.
+innocents.csv (shares received by innocent accounts in the base worlds) and realdata/out/share_bounds.json;
+and, since 16 Nov 2026, exp21_summary.csv (experiments21.py: fraud size and P2P resale on the new worlds 16000-16019,
+preregistration_p2p.md) and fraud_size.json (realdata/analysis/fraud_size.py).
 
 Usage: python3 tools/build_stress.py DIR      (DIR holds exp19_summary.csv, exp19b_summary.csv, exp19c_summary.csv,
-                                               innocents.csv, share_bounds.json)
+                                               innocents.csv, share_bounds.json, exp21_summary.csv,
+                                               fraud_size.json)
 No number is typed here: every value is read from those files."""
 import sys, json, pathlib
 import pandas as pd
@@ -70,5 +73,21 @@ out = dict(meta=dict(worlds=int(base_a.n_worlds), days=90, involved=N, involved_
            common_destination=dict(rows=dest, found_total=int(base_a["tp_G2+"]), found_only_by_it=int(base_a["tp_G2+_only_conv"]),
                                    without_clue=dict(precision=prec(base_a, "G2+_noconv"), found=found(base_a, "G2+_noconv"))),
            innocents=innocents, real=real)
+
+# fraud size and P2P resale (Table 6 of the Results page)
+e = pd.read_csv(D / "exp21_summary.csv").set_index("case")
+fs = json.load(open(D / "fraud_size.json"))
+CASES = [("reference", "reference"), ("sample_fixed", "grid F=real v=0.0 buyers=2-10 fixed"),
+         ("sample_prop", "grid F=real v=0.0 buyers=2-10 fraud"),
+         ("p2p_10", "p2p frequency=0.1"), ("p2p_25", "p2p frequency=0.25"), ("p2p_50", "grid F=real v=0.2 buyers=1 fixed"),
+         ("two_5", "two platforms=0.05"), ("two_10", "two platforms=0.1")]
+size = dict(worlds="16000-16019", real_median_eur=round(fs["real"]["quantiles_eur"]["0.5"]), real_seeds=fs["real"]["n_seeds"],
+            sim_median_eur=fs["sim"]["F_median_setting"],
+            rows=[dict(id=k, g2=float(e.loc[c, "prec_G2+"]), g2_lo=float(e.loc[c, "prec_G2+_lo"]), g2_hi=float(e.loc[c, "prec_G2+_hi"]),
+                       g2_fa=float(e.loc[c, "fa_per_fraud_G2+"]), g2_found=float(e.loc[c, "found_G2+"]),
+                       g3=float(e.loc[c, "prec_G3"]), g3_lo=float(e.loc[c, "prec_G3_lo"])) for k, c in CASES],
+            g3_min_all=float(e["prec_G3"].min()), g3_min_but_two10=float(e.drop("two platforms=0.1")["prec_G3"].min()),
+            cases=int(len(e)))
+out["size_p2p"] = size
 json.dump(out, open(OUT, "w"), indent=1)
 print(f"wrote {OUT}: {len(one)} one-account rows, {len(two)} two-exchange rows, {len(dest)} destination rows")

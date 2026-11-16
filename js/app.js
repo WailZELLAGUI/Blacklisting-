@@ -561,6 +561,7 @@ const APP = (() => {
     const ir = st.innocents.by_role;
     const items = [[t('assume_1_t'), t('assume_1_d', { mx: pct(Math.max(ir.FRAMED.max, ir.BAIT.max), 0), v: ir.VICTIM.ge20, u: pct(st.innocents.under_10pct, 0), ll: ir.LANDLORD.ge20, p2p: ir.P2P.ge20, n: num(st.innocents.accounts),
       llf: ir.LANDLORD.ge20_flagged, p2pf: ir.P2P.ge20_flagged })], [t('assume_2_t'), t('assume_2_d')], [t('assume_3_t'), t('assume_3_d')], [t('assume_4_t'), t('assume_4_d')]];
+    if (st.size_p2p) items.push([t('assume_5_t'), t('assume_5_d', { sim: eur(st.size_p2p.sim_median_eur), real: eur(st.size_p2p.real_median_eur), n: num(st.size_p2p.real_seeds) })]);
     $('#assume-list').innerHTML = items.map(([a, b]) => `<li><b>${esc(a)}</b> ${esc(b)}</li>`).join('');
     const cap = (n, txt) => `<caption><span class="tag">${t('tbl')} ${n}</span>${esc(txt)}</caption>`;
     const cell = (x) => `<td class="n">${x === undefined || x === null ? '–' : pct(x)}</td>`;
@@ -585,6 +586,15 @@ const APP = (() => {
     $('#hold-t3').innerHTML = `<table class="t">${cap(4, t('hold_t3'))}<thead><tr><th scope="col">${esc(t('hold_dest_col'))}</th><th scope="col" class="n">${esc(t('hold_prec'))}</th><th scope="col" class="n">${esc(t('hold_found'))}</th><th scope="col" class="n">${esc(t('hold_found_g3'))}</th></tr></thead><tbody>` +
       cd.rows.map(r => `<tr${r.share === 0.5 ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${pct(r.share, 0)}${r.share === 0.5 ? ` (${esc(t('hold_ours'))})` : ''}</th>${cell(r.g2)}${cell(r.found)}${cell(r.found_g3)}</tr>`).join('') + '</tbody></table>';
     $('#hold-dest').textContent = t('hold_dest_p', { only: num(cd.found_only_by_it), tot: num(cd.found_total) });
+    // table 5: fraud size and peer-to-peer resale, new worlds (experiments21.py, preregistration_p2p.md)
+    const sz = st.size_p2p; if (!sz) return;
+    const R = Object.fromEntries(sz.rows.map(r => [r.id, r])), fa = (x) => x.toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.');
+    const label = (id) => id.startsWith('p2p_') ? t('hold_c_p2p', { f: pct(+id.slice(4) / 100, 0) }) : id.startsWith('two_') ? t('hold_c_two', { f: pct(+id.slice(4) / 100, 0) }) : t('hold_c_' + id);
+    $('#hold-t4').innerHTML = `<table class="t">${cap(5, t('hold_t4', { w: sz.worlds }))}<thead><tr><th scope="col">${esc(t('hold_case'))}</th><th scope="col" class="n">${esc(t('hold_g2p'))}</th><th scope="col" class="n">${esc(t('hold_fa'))}</th><th scope="col" class="n">${esc(t('hold_g2f'))}</th><th scope="col" class="n">${esc(t('hold_g3p'))}</th></tr></thead><tbody>` +
+      sz.rows.map(r => `<tr><th scope="row" style="font-weight:500">${esc(label(r.id))}</th><td class="n">${pct(r.g2)} <span class="note">(${pct(r.g2_lo)}–${pct(r.g2_hi)})</span></td><td class="n">${fa(r.g2_fa)}</td>${cell(r.g2_found)}${cell(r.g3)}</tr>`).join('') + '</tbody></table>';
+    $('#hold-size').textContent = t('hold_size_read', { fa: fa(R.sample_fixed.g2_fa), fb: fa(R.sample_prop.g2_fa), fa0: fa(R.reference.g2_fa), pA: pct(R.sample_fixed.g2), pB: pct(R.sample_prop.g2),
+      f10: fa(R.p2p_10.g2_fa), f25: fa(R.p2p_25.g2_fa), f50: fa(R.p2p_50.g2_fa) });
+    $('#hold-g3').textContent = t('hold_g3_read', { g3: pct(sz.g3_min_but_two10), n: sz.cases, g3x: pct(R.two_10.g3) });
   }
 
   /* ---------------------------------------------------------------- real data */
