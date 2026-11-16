@@ -1,0 +1,63 @@
+{
+ "pairs": 1152,
+ "seeds_reaching_a_deposit": 422,
+ "seeds_all": 1448,
+ "pairs_by_share": {
+  "<1%": 0.4288,
+  "1-5%": 0.2474,
+  "5-10%": 0.0938,
+  "10-15%": 0.0339,
+  "15-20%": 0.0295,
+  "20-30%": 0.0486,
+  "30-50%": 0.0399,
+  ">=50%": 0.0781
+ },
+ "seeds_by_threshold": {
+  ">= 10 %": {
+   "seeds_with_1plus": 214,
+   "seeds_with_2plus": 43,
+   "share_of_reaching_seeds_1plus": 0.5071,
+   "share_of_reaching_seeds_2plus": 0.1019,
+   "share_of_all_seeds_2plus": 0.0297
+  },
+  ">= 15 %": {
+   "seeds_with_1plus": 192,
+   "seeds_with_2plus": 28,
+   "share_of_reaching_seeds_1plus": 0.455,
+   "share_of_reaching_seeds_2plus": 0.0664,
+   "share_of_all_seeds_2plus": 0.0193
+  },
+  ">= 20 %": {
+   "seeds_with_1plus": 170,
+   "seeds_with_2plus": 20,
+   "share_of_reaching_seeds_1plus": 0.4028,
+   "share_of_reaching_seeds_2plus": 0.0474,
+   "share_of_all_seeds_2plus": 0.0138
+  },
+  ">= 30 %": {
+   "seeds_with_1plus": 128,
+   "seeds_with_2plus": 8,
+   "share_of_reaching_seeds_1plus": 0.3033,
+   "share_of_reaching_seeds_2plus": 0.019,
+   "share_of_all_seeds_2plus": 0.0055
+  },
+  ">= 50 %": {
+   "seeds_with_1plus": 90,
+   "seeds_with_2plus": 0,
+   "share_of_reaching_seeds_1plus": 0.2133,
+   "share_of_reaching_seeds_2plus": 0.0,
+   "share_of_all_seeds_2plus": 0.0
+  }
+ },
+ "common_destination": "not measurable on-chain: withdrawals from a CEX account leave from the exchange's hot wallets, so two accounts paying the same address cannot be seen without exchange data (grades_real.py already drops this clue)",
+ "B_two_accounts_ge10pct": {
+  "seeds": 43,
+  "on_two_or_more_exchanges": 18,
+  "share_of_reaching_seeds": 0.0427,
+  "exchange_label_missing_pairs": 0
+ },
+ "A_bounds_ge20pct": {
+  "upper_bound_no_assumption": 0.4028,
+  "pass_through_24h": "not measurable on-chain"
+ }
+}

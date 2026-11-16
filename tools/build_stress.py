@@ -4,7 +4,7 @@ innocents.csv (shares received by innocent accounts in the base worlds) and real
 and, since 16 Nov 2026, exp21_summary.csv (experiments21.py: fraud size and P2P resale on the new worlds 16000-16019,
 preregistration_p2p.md) and fraud_size.json (realdata/analysis/fraud_size.py).
 
-Usage: python3 tools/build_stress.py DIR      (DIR holds exp19_summary.csv, exp19b_summary.csv, exp19c_summary.csv,
+Usage: python3 tools/build_stress.py research/results      (DIR holds exp19_summary.csv, exp19b_summary.csv, exp19c_summary.csv,
                                                innocents.csv, share_bounds.json, exp21_summary.csv,
                                                fraud_size.json)
 No number is typed here: every value is read from those files."""
