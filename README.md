@@ -29,7 +29,9 @@ Anthropic API key, which stays in the visitor's browser. It is a feature of the 
   the frozen rules (`rules.json`) and the bridge to the page (`webapi.py`).
 - `data/thesis.json`: our measured results, built from the result files of the experiments.
 - `data/stress.json`: the stress tests of the Results page ("How far the results hold"), built from the result
-  files of the experiments by `tools/build_stress.py`.
+  files of the experiments by `tools/build_stress.py` (`python3 tools/build_stress.py research/results`).
+- `research/`: the stress-test and fraud-size scripts, their result files, and the preregistration of the fraud-size
+  and peer-to-peer sweep (see `research/README.md`).
 - `data/world_default.json`: one world generated in advance (seed 2027), shown while Python loads
   or if it cannot start; rebuilt by `tools/build_world_default.py`.
 - `tests/`: checks that run without the network (see `tests/README.md`).

@@ -31,6 +31,9 @@ BLTE = _json.load(open(_BLTE_PATH)) if _os.path.exists(_BLTE_PATH) else None
 _TIMING_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "timing_params.json")
 TIMING = _json.load(open(_TIMING_PATH)) if _os.path.exists(_TIMING_PATH) else None
 # measured spread of a fraud's money over exchange deposit accounts (realdata/analysis/compare_shares.py)
+_REALF_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "real_F.json")
+REAL_F = _json.load(open(_REALF_PATH))["amounts"] if _os.path.exists(_REALF_PATH) else None
+
 _SPLIT_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "realdata", "out", "split_params.json")
 SPLIT = _json.load(open(_SPLIT_PATH))["seeds"] if _os.path.exists(_SPLIT_PATH) else None
 
@@ -120,6 +123,19 @@ class Config:
     # "real" : each fraud copies one real seed (BigQuery): k = its number of deposit accounts (>= EUR 100) and the share
     #          of its money reaching our exchanges = the sum of their shares
     split_model: str = "pilot"
+    # ---- 16 Nov 2026: amounts paid to innocents ----
+    # "fixed": P2P buyers, paid helpers, bait and landlords get fixed euro amounts (every result up to 16 Nov 2026)
+    # "fraud": the same draws multiplied by F / innocent_F_ref, so they stay a share of the fraud (EUR 30,000 = the
+    #          median F under which the fixed amounts were set; at that F both models give the same amounts)
+    innocent_amounts: str = "fixed"
+    innocent_F_ref: float = 30_000.0
+    # ---- 16 Nov 2026: P2P sweep (preregistration_p2p.md); defaults keep every earlier world unchanged ----
+    F_source: str = "lognormal"           # "real": F drawn from the 1,448 real phishing seeds (realdata/out/real_F.json)
+    p2p_volume: Optional[float] = None    # None: old P2P (EUR 300-3,000 per buyer, outside the budget); else share v of F,
+                                          # taken from the handlers' budget, own random stream
+    p2p_buyers: Optional[int] = None      # with p2p_volume: 1 buyer, or None for 2-10
+    p2p_fast: float = 0.5                 # with p2p_volume: probability that a buyer resells within hours
+    p2p_two_platforms: float = 0.0        # with p2p_volume: share of frauds paying one extra buyer on two exchanges
 
     def with_(self, **kw) -> "Config":
         return replace(self, **kw)
@@ -455,6 +471,9 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         # own child stream, drawn last: the other draws of the world are unchanged
         ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
         w.p_new_mule = float(np.random.default_rng(ss.spawn(1)[0]).uniform(*cfg.p_new_mule_range))
+    if cfg.p2p_volume is not None:
+        ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+        w.p2prng = np.random.default_rng(ss.spawn(1)[0])
     w.popular = [(f"pop{i}", rng.random() < cfg.p_popular_labelled) for i in range(cfg.n_popular_dest)]
     for ex in range(cfg.n_exchanges):
         for _ in range(cfg.n_services_per_exchange):
@@ -470,7 +489,12 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
             w.facilitators.append(aid)
 
     for s in range(cfg.n_seeds):
-        F = cfg.F_fixed if cfg.F_fixed else float(np.clip(lognormal(rng, cfg.F_median, cfg.F_sigma), 500, 2e6))
+        if cfg.F_fixed:
+            F = cfg.F_fixed
+        elif cfg.F_source == "real":
+            F = float(REAL_F[int(rng.integers(len(REAL_F)))])
+        else:
+            F = float(np.clip(lognormal(rng, cfg.F_median, cfg.F_sigma), 500, 2e6))
         typ = str(rng.choice(cfg.typologies))
         k = cfg.k_fixed if cfg.k_fixed else int(rng.integers(cfg.k_range[0], cfg.k_range[1] + 1))
         if typ == "T1":
@@ -496,6 +520,7 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
             tau = t_col0 + delay * DAY             # t_col0 = first money received by the seed
             t_dist = t_col0 + min(lags) * DAY      # first pay-out; later ones are shifted by payout_shift
             t_col1 = t_col0 + max(lags) * DAY
+        scale = F / cfg.innocent_F_ref if cfg.innocent_amounts == "fraud" else 1.0
         w.seeds[s] = dict(seed=s, F=F, F_known=F_known, typology=typ, k=k, tau=tau,
                           t_col0=t_col0, t_col1=t_col1, t_dist=t_dist, out=0.0, lags=lags)
         budget = F * rng.uniform(*cfg.handler_share)
@@ -509,6 +534,10 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
                 w.seeds[s]["k"] = k
             cex = float(min(1.0, tot_real / np.mean(cfg.handler_share)))
             w.seeds[s]["cex_share"] = cex
+        p2p_plan = None
+        if cfg.p2p_volume is not None:
+            p2p_plan = plan_p2p(w, F, budget)
+            budget -= sum(a for _, a in p2p_plan)
         if cex < 1.0 and typ != "T9":
             add_lump(w, s, budget * (1.0 - cex))   # leaves through routes outside our exchanges
             budget *= cex
@@ -531,12 +560,14 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
             w.truth.setdefault((s, aid), "SERVICE")
             seed_transfer(w, s, aid, rng.uniform(t_col0, H - 5 * DAY), F * rng.uniform(0.005, 0.03))
         # peer-to-peer buyers: pay the fraudster cash, receive crypto, often resell fast
-        if rng.random() < cfg.p_p2p:
+        if p2p_plan is not None:
+            pay_p2p(w, s, p2p_plan, t_dist)
+        elif rng.random() < cfg.p_p2p:
             for _ in range(int(rng.integers(2, 11))):
                 aid = legit_account(w, rng)
                 w.accounts[aid]["ramp"] = w.accounts[aid].get("ramp") or rng.random() < 0.5
                 w.truth[(s, aid)] = "P2P"
-                seed_transfer(w, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), rng.uniform(*cfg.p2p_amount), rng=rng)
+                seed_transfer(w, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), rng.uniform(*cfg.p2p_amount) * scale, rng=rng)
         # victims who receive money back
         if rng.random() < cfg.p_inducement:
             blte = cfg.refund_model == "blte" and BLTE is not None
@@ -580,28 +611,65 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
             for _ in range(int(rng.integers(1, 4))):
                 aid = legit_account(w, rng)
                 w.truth[(s, aid)] = "ACCOMPLICE"
-                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.salary_amount)
+                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.salary_amount, scale)
         if cfg.p_bait > 0 and rng.random() < cfg.p_bait:
             for _ in range(int(rng.integers(1, 4))):
                 aid = legit_account(w, rng)
                 w.truth[(s, aid)] = "BAIT"
-                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.bait_amount)
+                monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.bait_amount, scale)
         if cfg.p_landlord > 0 and rng.random() < cfg.p_landlord:
             aid = legit_account(w, rng)
             w.accounts[aid]["ramp"] = False
             w.truth[(s, aid)] = "LANDLORD"
-            monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.rent_amount)
+            monthly(w, rng, s, aid, t_dist + rng.uniform(0, 10) * DAY + payout_shift(w, s), cfg.rent_amount)   # rent never scales
         # second step: the fraudster's own account pays accomplices onwards (+2)
         if cfg.p_plus2 > 0 and s in w.self_accounts and rng.random() < cfg.p_plus2:
             plus2_payments(w, rng, s, t_dist)
     return w
 
 
-def monthly(w, rng, s, aid, t0, amount_range):
+def plan_p2p(w, F, budget):
+    """P2P sweep: list of (n_platforms, amount) buyers, drawn in the P2P stream; total <= the handlers' budget."""
+    cfg, r = w.cfg, w.p2prng
+    plan = []
+    if r.random() < cfg.p_p2p and cfg.p2p_volume > 0:
+        n = cfg.p2p_buyers if cfg.p2p_buyers else int(r.integers(2, 11))
+        wts = r.uniform(1.0 - cfg.split_spread, 1.0 + cfg.split_spread, n)
+        plan += [(1, a) for a in cfg.p2p_volume * F * wts / wts.sum()]
+    if cfg.p2p_two_platforms > 0 and r.random() < cfg.p2p_two_platforms:
+        plan.append((2, cfg.p2p_volume * F))
+    tot = sum(a for _, a in plan)
+    if tot > budget > 0:
+        plan = [(k, a * budget / tot) for k, a in plan]
+    elif budget <= 0:
+        plan = []
+    return plan
+
+
+def pay_p2p(w, s, plan, t_dist):
+    """P2P buyers of the sweep: ordinary customers of participating exchanges, created in the P2P stream."""
+    cfg, r = w.cfg, w.p2prng
+    lags = w.seeds[s].get("lags")
+    for k, amt in plan:
+        iid = w.new_identity()
+        exs = r.permutation(cfg.n_exchanges)[:k]
+        fast = r.random() < cfg.p2p_fast
+        t = t_dist + r.uniform(0, 10) * DAY
+        if lags:
+            t += (float(lags[int(r.integers(len(lags)))]) - min(lags)) * DAY
+        for ex in exs:
+            aid = w.new_account(r, iid, int(ex), "legit")
+            legit_profile(w, r, aid)
+            w.accounts[aid]["ramp"] = fast
+            w.truth[(s, aid)] = "P2P"
+            seed_transfer(w, s, aid, t + r.uniform(0, 48), amt / k, rng=r)
+
+
+def monthly(w, rng, s, aid, t0, amount_range, scale=1.0):
     cfg = w.cfg
     months = int(rng.integers(cfg.drip_months[0], cfg.drip_months[1] + 1))
     for m in range(months):
-        seed_transfer(w, s, aid, t0 + m * 30 * DAY + rng.uniform(-2, 2) * DAY, rng.uniform(*amount_range), rng=rng)
+        seed_transfer(w, s, aid, t0 + m * 30 * DAY + rng.uniform(-2, 2) * DAY, rng.uniform(*amount_range) * scale, rng=rng)
 
 
 def plus2_payments(w, rng, s, t_dist):
