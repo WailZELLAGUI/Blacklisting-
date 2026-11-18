@@ -584,8 +584,23 @@ const APP = (() => {
       llf: ir.LANDLORD.ge20_flagged, p2pf: ir.P2P.ge20_flagged })], [t('assume_2_t'), t('assume_2_d')], [t('assume_3_t'), t('assume_3_d')], [t('assume_4_t'), t('assume_4_d')]];
     if (st.size_p2p) items.push([t('assume_5_t'), t('assume_5_d', { sim: eur(st.size_p2p.sim_median_eur), real: eur(st.size_p2p.real_median_eur), n: num(st.size_p2p.real_seeds) })]);
     const obs = Object.fromEntries(S.thesis.option_b.settings.map(r => [r.setting, r]));
-    items.push([t('assume_6_t'), t('assume_6_d', { lo: pct(obs[9].G2.precision), hi: pct(obs[10].G2.precision), mid: pct(obs[4].G2.precision) })]);
-    $('#assume-list').innerHTML = items.map(([a, b]) => `<li><b>${esc(a)}</b> ${esc(b)}</li>`).join('');
+    items.push([t('assume_6_t'), t('assume_6_d')]);
+    // effect of each assumption on precision AND on accounts found, read from the result files
+    const fa2 = (x) => x.toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.');
+    const b0 = st.base[W], s1 = st.one_account.find(r => r.cex === 0.5 && r.kind === 'seller' && r.p === 0.1 && r.s === 0.2);
+    const s2 = st.two_exchanges.find(r => r.cex === 0.5 && r.kind === 'seller' && r.p === 0.05 && r.s === 0.2);
+    const d0 = cd.rows.find(r => r.share === 0), d5 = cd.rows.find(r => r.share === 0.5);
+    const kk = (k) => S.thesis.sweep_k.find(r => r.k === k && r.detector === 'Rev5 V3 G2+');
+    const eff = [
+      s1 && t('assume_eff', { p0: pct(b0.g2.precision), p1: pct(s1.g2), f0: pct(b0.g2.found), f1: pct(s1.found), c: t('assume_c1') }),
+      s2 && t('assume_eff_g3', { p0: pct(b0.g2.precision), p1: pct(s2.g2), g0: pct(b0.g3.precision), g1: pct(s2.g3), c: t('assume_c2') }),
+      d0 && d5 && t('assume_eff', { p0: pct(d5.g2), p1: pct(d0.g2), f0: pct(d5.found), f1: pct(d0.found), c: t('assume_c3') }),
+      kk(2) && kk(10) && t('assume_eff', { p0: pct(kk(2).precision), p1: pct(kk(10).precision), f0: pct(kk(2).recall), f1: pct(kk(10).recall), c: t('assume_c4') }),
+      t('assume_eff_fa', { p0: pct(obs[1].G2.precision), p1: pct(obs[4].G2.precision), f0: pct(obs[1].G2.found), f1: pct(obs[4].G2.found), a0: fa2(obs[1].G2.fp_per_fraud), a1: fa2(obs[4].G2.fp_per_fraud), c: t('assume_c5') }),
+      t('assume_eff_two', { p0: pct(obs[4].G2.precision), pa: pct(obs[9].G2.precision), pb: pct(obs[10].G2.precision), f0: pct(obs[4].G2.found), fa: pct(obs[9].G2.found), fb: pct(obs[10].G2.found), c: t('assume_c6') })];
+    $('#assume-list').innerHTML = items.map(([a, b], i) => `<li><b>${esc(a)}</b> ${esc(b)}${eff[i] ? `<br><span class="note">${esc(eff[i])}</span>` : ''}</li>`).join('');
+    const pmin = Math.min(...[d0 && d0.g2, kk(2) && kk(2).precision, kk(10) && kk(10).precision].filter(x => x));
+    $('#assume-sum').textContent = t('assume_sum', { pmin: pct(pmin, 0), fa: fa2(Math.max(obs[1].G2.fp_per_fraud, obs[4].G2.fp_per_fraud)) });
     const cap = (n, txt) => `<caption><span class="tag">${t('tbl')} ${n}</span>${esc(txt)}</caption>`;
     const cell = (x) => `<td class="n">${x === undefined || x === null ? '–' : pct(x)}</td>`;
     const of = (p) => esc(t('hold_of_frauds', { p: pct(p, 0) }));
