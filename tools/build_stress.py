@@ -1,8 +1,10 @@
 """Builds data/stress.json (the "How far the results hold" tables of the Results page) from the result files of
 experiments19.py, experiments19b.py, experiments19c.py (stress tests on the 20 test worlds, tau + 90 d, frozen rules),
 innocents.csv (shares received by innocent accounts in the base worlds) and realdata/out/share_bounds.json;
-and, since 16 Nov 2026, exp21_summary.csv (experiments21.py: fraud size and P2P resale on the new worlds 16000-16019,
-preregistration_p2p.md) and fraud_size.json (realdata/analysis/fraud_size.py).
+and, since 16 Nov 2026, exp21_summary.csv (experiments21.py: fraud size and P2P resale, preregistration_p2p.md) and
+fraud_size.json (realdata/analysis/fraud_size.py). worlds.json says which worlds and which generator the runs used:
+since 18 Nov 2026, research/results/ holds the reruns on worlds 43000-43019 (corrected and paired generator);
+research/results_v16nov/ the earlier ones.
 
 Usage: python3 tools/build_stress.py research/results      (DIR holds exp19_summary.csv, exp19b_summary.csv, exp19c_summary.csv,
                                                innocents.csv, share_bounds.json, exp21_summary.csv,
@@ -12,6 +14,7 @@ import sys, json, pathlib
 import pandas as pd
 
 D = pathlib.Path(sys.argv[1])
+W0 = json.load(open(D / "worlds.json"))
 OUT = pathlib.Path(__file__).resolve().parent.parent / "data" / "stress.json"
 a, b, c = (pd.read_csv(D / f"exp19{x}_summary.csv") for x in ("", "b", "c"))
 a["cex"] = 0.5
@@ -67,7 +70,7 @@ real = dict(seeds=sb["seeds_reaching_a_deposit"],
             one_account_ge20=sb["seeds_by_threshold"][">= 20 %"]["share_of_reaching_seeds_1plus"],
             two_accounts_ge20=sb["seeds_by_threshold"][">= 20 %"]["share_of_reaching_seeds_2plus"],
             two_exchanges_ge10=sb["B_two_accounts_ge10pct"]["share_of_reaching_seeds"])
-out = dict(meta=dict(worlds=int(base_a.n_worlds), days=90, involved=N, involved_all=int(base_a.n_all),
+out = dict(meta=dict(worlds=int(base_a.n_worlds), world_ids=W0["worlds"], streams=W0["streams"], days=90, involved=N, involved_all=int(base_a.n_all),
                      found_all=round(base_a["tp_G2+"] / base_a.n_all, 4)),
            base=base, one_account=one, two_exchanges=two,
            common_destination=dict(rows=dest, found_total=int(base_a["tp_G2+"]), found_only_by_it=int(base_a["tp_G2+_only_conv"]),
@@ -81,7 +84,8 @@ CASES = [("reference", "reference"), ("sample_fixed", "grid F=real v=0.0 buyers=
          ("sample_prop", "grid F=real v=0.0 buyers=2-10 fraud"),
          ("p2p_10", "p2p frequency=0.1"), ("p2p_25", "p2p frequency=0.25"), ("p2p_50", "grid F=real v=0.2 buyers=1 fixed"),
          ("two_5", "two platforms=0.05"), ("two_10", "two platforms=0.1")]
-size = dict(worlds="16000-16019", real_median_eur=round(fs["real"]["quantiles_eur"]["0.5"]), real_seeds=fs["real"]["n_seeds"],
+W = json.load(open(D / "worlds.json"))
+size = dict(worlds=W.get("worlds_size_p2p", W["worlds"]), real_median_eur=round(fs["real"]["quantiles_eur"]["0.5"]), real_seeds=fs["real"]["n_seeds"],
             sim_median_eur=fs["sim"]["F_median_setting"],
             rows=[dict(id=k, g2=float(e.loc[c, "prec_G2+"]), g2_lo=float(e.loc[c, "prec_G2+_lo"]), g2_hi=float(e.loc[c, "prec_G2+_hi"]),
                        g2_fa=float(e.loc[c, "fa_per_fraud_G2+"]), g2_found=float(e.loc[c, "found_G2+"]),

@@ -136,6 +136,21 @@ class Config:
     p2p_buyers: Optional[int] = None      # with p2p_volume: 1 buyer, or None for 2-10
     p2p_fast: float = 0.5                 # with p2p_volume: probability that a buyer resells within hours
     p2p_two_platforms: float = 0.0        # with p2p_volume: share of frauds paying one extra buyer on two exchanges
+    # ---- 17 Nov 2026: payments between ordinary customers (0 = off, every earlier world unchanged) ----
+    # share of an ordinary customer's deposits that come from another ordinary customer of the world, who then has a
+    # matching withdrawal at the same time (same exchange: internal transfer; other exchange: on-chain). Own stream.
+    user_transfers: float = 0.0
+    # ---- 17 Nov 2026: a fraud never pays out more than it stole (False = every earlier world unchanged) ----
+    # "off": as before; "innocents": if a seed's payments exceed F, only its payments to innocent accounts are scaled
+    # down so that the total equals F (as far as possible); "all": every payment of that seed (both sides, untraced
+    # routes, the cover mules' fixed exits) is scaled by F / out, so the seed sends exactly F and keeps its composition
+    budget_cap: str = "all"          # default "all" since 17 Nov 2026 (option B); "off" reproduces every earlier result
+    # 18 Nov 2026: "shared" (default) = one random stream for the whole world, as in every earlier result: changing an
+    # option that draws random numbers (customer activity, P2P, ...) shifts the draws, so two settings with the same world
+    # number do not hold the same frauds. "paired" = each fraud's parameters (amount stolen, pattern, number of handlers,
+    # dates) come from their own stream, and the rest of each fraud from a stream of its own, so the frauds stay the same
+    # from one setting to the next (tests/test_paired.py).
+    streams: str = "shared"
 
     def with_(self, **kw) -> "Config":
         return replace(self, **kw)
@@ -488,30 +503,45 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
             facilitator_profile(w, rng, aid)
             w.facilitators.append(aid)
 
+    paired = cfg.streams == "paired"
+    if cfg.streams not in ("shared", "paired"):
+        raise ValueError(cfg.streams)
+    if paired:
+        ss0 = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+        sub = lambda *key: np.random.default_rng(np.random.SeedSequence(ss0.entropy, spawn_key=tuple(ss0.spawn_key) + key))
+        prng = sub(1000)                                   # the frauds' parameters, the same in every setting
     for s in range(cfg.n_seeds):
+        pr = prng if paired else rng
+        if paired:
+            rng = sub(2000, s)                             # the rest of fraud s (its accounts, payments, innocents)
+            if w.trng is not None:
+                w.trng = sub(4000, s)                      # fraud s's pay-out dates
+            u_real = int(pr.integers(len(REAL_F))) if REAL_F is not None else 0
+            F_logn = float(np.clip(lognormal(pr, cfg.F_median, cfg.F_sigma), 500, 2e6))
         if cfg.F_fixed:
             F = cfg.F_fixed
         elif cfg.F_source == "real":
-            F = float(REAL_F[int(rng.integers(len(REAL_F)))])
+            F = float(REAL_F[u_real if paired else int(pr.integers(len(REAL_F)))])
         else:
-            F = float(np.clip(lognormal(rng, cfg.F_median, cfg.F_sigma), 500, 2e6))
-        typ = str(rng.choice(cfg.typologies))
-        k = cfg.k_fixed if cfg.k_fixed else int(rng.integers(cfg.k_range[0], cfg.k_range[1] + 1))
+            F = F_logn if paired else float(np.clip(lognormal(pr, cfg.F_median, cfg.F_sigma), 500, 2e6))
+        typ = str(pr.choice(cfg.typologies))
+        k = cfg.k_fixed if cfg.k_fixed else int(pr.integers(cfg.k_range[0], cfg.k_range[1] + 1))
         if typ == "T1":
             k = 1
-        t_col0 = rng.uniform(1, 15) * DAY
-        t_col1 = t_col0 + rng.uniform(2, 10) * DAY
-        t_dist = t_col1 + rng.uniform(0, 5) * DAY
-        tau = t_col1 + rng.uniform(0, 10) * DAY
-        F_known = F * rng.uniform(*cfg.F_known_frac)
+        t_col0 = pr.uniform(1, 15) * DAY
+        t_col1 = t_col0 + pr.uniform(2, 10) * DAY
+        t_dist = t_col1 + pr.uniform(0, 5) * DAY
+        tau = t_col1 + pr.uniform(0, 10) * DAY
+        F_known = F * pr.uniform(*cfg.F_known_frac)
         lags = None
         if cfg.blacklist_model != "old":
-            case = TIMING["alert"][int(w.trng.integers(len(TIMING["alert"])))]
+            tr = pr if paired else w.trng
+            case = TIMING["alert"][int(tr.integers(len(TIMING["alert"])))]
             lags = case["lags"]
             if cfg.blacklist_model == "alert":
                 delay = case["delay"]
             elif cfg.blacklist_model == "freeze":
-                fz = TIMING["freeze"][int(w.trng.integers(len(TIMING["freeze"])))]
+                fz = TIMING["freeze"][int(tr.integers(len(TIMING["freeze"])))]
                 delay = fz["delay"]
                 lo, hi = min(lags), max(lags)        # order of the pay-outs from the alert seed, in Tether's window
                 lags = [0.0 if hi == lo else (x - lo) / (hi - lo) * fz["out_span"] for x in lags]
@@ -523,7 +553,7 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         scale = F / cfg.innocent_F_ref if cfg.innocent_amounts == "fraud" else 1.0
         w.seeds[s] = dict(seed=s, F=F, F_known=F_known, typology=typ, k=k, tau=tau,
                           t_col0=t_col0, t_col1=t_col1, t_dist=t_dist, out=0.0, lags=lags)
-        budget = F * rng.uniform(*cfg.handler_share)
+        budget = F * pr.uniform(*cfg.handler_share)
         cex = cfg.cex_share
         if cfg.split_model == "real":
             if SPLIT is None:
@@ -625,7 +655,92 @@ def generate_world(cfg: Config, rng: np.random.Generator) -> World:
         # second step: the fraudster's own account pays accomplices onwards (+2)
         if cfg.p_plus2 > 0 and s in w.self_accounts and rng.random() < cfg.p_plus2:
             plus2_payments(w, rng, s, t_dist)
+    if paired:
+        rng = sub(3000)                                    # what comes after the frauds
+    if cfg.budget_cap != "off":
+        cap_budget(w, cfg.budget_cap)
+    if cfg.user_transfers > 0:
+        user_transfers(w, rng)
     return w
+
+
+def cap_budget(w, mode):
+    """Make each seed send no more than it stole (F); see Config.budget_cap."""
+    inno, alla = {}, {}
+    for (s, a), r in w.truth.items():
+        alla.setdefault(s, set()).add(a)
+        if r in NEGATIVE_ROLES:
+            inno.setdefault(s, set()).add(a)
+    for s, v in w.seeds.items():
+        if mode == "all":
+            if v["out"] <= v["F"]:
+                v["budget_scale"] = 1.0
+                continue
+            k = v["F"] / v["out"]
+            for a in alla.get(s, set()):
+                pos = w.truth.get((s, a)) in POSITIVE_ROLES
+                w.events[a] = [(e[0], e[1], e[2], e[3], e[4] * k, e[5])
+                               if ((e[3] == "in_seed" and e[5][0] == s) or (pos and e[3] == "exit_amt")) else e
+                               for e in w.events[a]]
+            if "out_lump" in v:
+                v["out_lump"] *= k
+            if "out_ev" in v:                    # the seed's dated outflows, used to compute what it sent by time t
+                v["out_ev"] = [(t, a * k) for t, a in v["out_ev"]]
+            v["out"] = v["F"]
+            v["budget_scale"] = k
+            continue
+        accs = inno.get(s, set())
+        I = sum(e[4] for a in accs for e in w.events.get(a, []) if e[3] == "in_seed" and e[5][0] == s)
+        if v["out"] <= v["F"] or I <= 0:
+            v["budget_scale"] = 1.0
+            continue
+        H = v["out"] - I
+        k = max(0.0, v["F"] - H) / I
+        paid = {}                                # innocents' dated payments, to rescale them in out_ev as well
+        for a in accs:
+            for e in w.events.get(a, []):
+                if e[3] == "in_seed" and e[5][0] == s:
+                    paid[(float(e[0]), float(e[4]))] = paid.get((float(e[0]), float(e[4])), 0) + 1
+        ev = []
+        for t, amt in v.get("out_ev", []):
+            if paid.get((t, amt), 0) > 0:
+                paid[(t, amt)] -= 1
+                if k > 0:
+                    ev.append((t, amt * k))
+            else:
+                ev.append((t, amt))
+        if "out_ev" in v:
+            v["out_ev"] = ev
+        for a in accs:
+            if k <= 0:          # nothing left for innocents: their payments from this seed disappear
+                w.events[a] = [e for e in w.events[a] if not (e[3] == "in_seed" and e[5][0] == s)]
+            else:
+                w.events[a] = [(e[0], e[1], e[2], e[3], e[4] * k, e[5]) if (e[3] == "in_seed" and e[5][0] == s) else e
+                               for e in w.events[a]]
+        v["out"] = H + k * I
+        v["budget_scale"] = k
+
+
+def user_transfers(w, rng):
+    """Payments between ordinary customers: a share of their deposits gets a sender among the other ordinary
+    customers, who gets a matching withdrawal. The deposits themselves are unchanged, so each receiver sees exactly
+    the same inflows; senders get extra outflows (capped by their balance when the features are computed)."""
+    ss = getattr(rng.bit_generator, "seed_seq", None) or rng.bit_generator._seed_seq
+    r = np.random.default_rng(ss.spawn(2)[1])
+    legit = [a for a, v in w.accounts.items() if v.get("profile") == "legit"]
+    if len(legit) < 2:
+        return
+    w.user_flows = []
+    for dst in legit:
+        for e in list(w.events[dst]):
+            if e[3] != "in" or e[5] is not None or r.random() >= w.cfg.user_transfers:
+                continue
+            src = legit[int(r.integers(len(legit)))]
+            if src == dst:
+                continue
+            same = w.accounts[src]["exch"] == w.accounts[dst]["exch"]
+            w.add_event(src, e[0], "exit_amt", e[4], (f"acct{dst}", "internal" if same else "crypto"))
+            w.user_flows.append((src, dst, float(e[0]), float(e[4])))
 
 
 def plan_p2p(w, F, budget):

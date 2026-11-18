@@ -217,7 +217,6 @@ const APP = (() => {
     $$('#presets button, #vis button').forEach(b => { b.disabled = S.busy; });      // no rule or fraud change while a world is being created
     $('#sel-fraud').disabled = S.busy; $('#next-fraud').disabled = S.busy;
     $('#tune-off').hidden = !tuneOff;
-    renderStable();
     $('#adv-sub').textContent = ready ? t('adv_sub') : t('needs_python');
     $$('#pat-boxes input').forEach(i => i.disabled = !ready || S.busy);
     const fixedWindow = $('#sel-window').value !== 'random';
@@ -408,19 +407,6 @@ const APP = (() => {
       return `<div>${esc(t('roles')[rk])} <span class="note">(${b.flagged}/${b.n})</span><div class="bar ${cls}" role="img" aria-label="${pct(b.rate || 0, 0)}"><i style="width:${100 * (b.rate || 0)}%"></i></div></div>`; };
     $('#roles').innerHTML = `<div class="h">${t('role_h')}</div>` + pos.map(x => row(x, '')).join('') + neg.map(x => row(x, 'neg')).join('');
   }
-  /* stable values: the robust zone of the searched thresholds (results8/zone_robust.json) */
-  // from zone_robust.json (experiments17c), given by the author on 15 Nov 2026: these two ranges are not in data/thesis.json
-  const ZONE_OTHER_RANGES = { sigma_dom: [0.1, 0.15, 0.2, 0.3, 0.5, 'off'], amount_route: ['on', 'off'] };
-  function renderStable() {
-    const box = $('#stable-box'); const z = S.thesis && S.thesis.zone; if (!box || !z) return;
-    const v = z.values, rng = (a) => a.length === 1 ? pct(a[0], 0) : `${pct(Math.min(...a), 0)} – ${pct(Math.max(...a), 0)}`;
-    const rows = [[t('sl_g2share'), rng(v.sigma), t('stable_fixed')], [t('stable_delta'), v.delta.map(d => `${d} h`).join(', '), t('stable_fixed')],
-      [t('sl_kappa'), rng(v.kappa), t('stable_free')], [t('sl_pi'), rng(v.pi), t('stable_free')],
-      [t('stable_dom'), t('stable_or_off', { v: ZONE_OTHER_RANGES.sigma_dom.filter(x => x !== 'off').map(x => pct(x, 0)).join(', ') }), t('stable_any')],
-      [t('stable_amt'), t('stable_onoff'), t('stable_any')]];
-    box.innerHTML = `<h3 class="subhead">${esc(t('stable_h'))}</h3><div class="tablewrap"><table class="t"><caption>${esc(t('stable_cap') + ' ' + t('stable_size', { size: z.size }))}</caption><thead><tr><th scope="col">${esc(t('stable_value'))}</th><th scope="col" class="n">${esc(t('stable_range'))}</th><th scope="col">${esc(t('stable_status'))}</th></tr></thead><tbody>` +
-      rows.map(r => `<tr><th scope="row">${esc(r[0])}</th><td class="n">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('') + '</tbody></table></div>';
-  }
   async function newWorld(params) {
     if (S.engine !== 'ready') throw new Error('Python not ready');
     S.busy = true; setControls(); $('#world-info').textContent = t('world_busy');
@@ -504,6 +490,8 @@ const APP = (() => {
     const m = S.thesis.main_E;
     renderHold();
     $('#res-base-note').textContent = t('res_base_note', { p: pct(m.ten_k_paper.precision) });
+    const f2 = (x) => x.toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.');
+    $('#res-rev3-note').textContent = t('res_rev3_note', { a: f2(m.rev3_V3.fp_per_fraud), b: f2(m.rev5_V3.fp_per_fraud), d: Math.round(S.thesis.real.fanout.median_gap_h / 24) });
     const L = { ten_k: t('preset_10k'),
       rev5_V1: `${t('preset_rev5')} (${t('vis_v1').toLowerCase()})`, rev5_V3: `${t('preset_rev5')} (${t('vis_v3').toLowerCase()})`,
       rev3_V1: `${t('preset_rev3')} (${t('vis_v1').toLowerCase()})`, rev3_V3: `${t('preset_rev3')} (${t('vis_v3').toLowerCase()})` };
@@ -512,7 +500,8 @@ const APP = (() => {
     const lab = (k) => L[k] || `${t('preset_' + k.slice(0, 4))}, G3`;
     const ci = (lo, hi) => `<span class="ci">(${(100 * lo).toFixed(0)} ${t('to')} ${(100 * hi).toFixed(0)})</span>`;
     $('#res-table').innerHTML = `<table class="t"><caption><span class=\"tag\">${t('tbl')} 1</span>${esc(t('res_table_h'))}</caption><thead><tr><th scope="col">${t('col_rule')}</th><th scope="col" class="n">${t('col_rec')}</th><th scope="col" class="n">${t('col_prec')}</th><th scope="col" class="n">${t('col_val')}</th><th scope="col" class="n">${t('col_fa')}</th></tr></thead><tbody>` +
-      rows.map(k => `<tr${k === 'rev5_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev5_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2)}</td></tr>`).join('') + '</tbody></table>';
+      rows.map(k => `<tr${k === 'rev5_V3' ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${esc(lab(k))}</th><td class="n">${k === 'ten_k' || k === 'rev5_V3' ? `<mark>${pct(m[k].recall)}</mark>` : pct(m[k].recall)} ${ci(m[k].rec_lo, m[k].rec_hi)}</td><td class="n">${pct(m[k].precision)} ${ci(m[k].prec_lo, m[k].prec_hi)}</td><td class="n">${pct(m[k].value_recall)}</td><td class="n">${(m[k].fp_per_fraud).toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.')}</td></tr>`).join('') + '</tbody></table>';
+    renderOptionB();
     chart('ch-main', { type: 'bar', data: { labels: ks.map(k => L[k]), datasets: [
       { label: t('col_rec'), data: ks.map(k => 100 * m[k].recall), backgroundColor: C.r3 },
       { label: t('col_prec'), data: ks.map(k => 100 * m[k].precision), backgroundColor: C.r2 }] },
@@ -546,9 +535,40 @@ const APP = (() => {
       { label: `${t('col_prec')}, ${t('preset_rev5')}`, data: f('Rev5 V3 G2+', 'precision'), borderColor: C.r4, borderDash: [6, 4], backgroundColor: C.r4, borderWidth: 2 },
       { label: `${t('col_prec')}, ${t('preset_rev3')}`, data: f('Rev3 V3 G2+', 'precision'), borderColor: C.r3b, borderDash: [6, 4], backgroundColor: C.r3b, borderWidth: 2 }];
     chart('ch-speed', { type: 'line', data: { labels: wl, datasets: lines(ser) }, options: { scales: { y: pctAxis } } });
+    const smeta = S.thesis.sweep_meta; if (smeta) $('#res-sweep-note').textContent = t('res_sweep_note', { n: smeta.n, w: smeta.worlds });
     const sk = S.thesis.sweep_k, kk = [...new Set(sk.map(x => x.k))];
     const kser = (det, k) => kk.map(v => 100 * sk.find(x => x.k === v && x.detector === det)[k]);
     chart('ch-k', { type: 'line', data: { labels: kk.map(v => v + ' mules'), datasets: lines(kser) }, options: { scales: { y: pctAxis } } });
+  }
+
+  /* ---------------------------------------------------------------- final test of the frozen rule in the 12 preregistered worlds (thesis.option_b) */
+  function renderOptionB() {
+    const ob = S.thesis.option_b, sm = S.thesis.main_E_sample; if (!ob) return;
+    const rows = ob.settings, fa = (x) => x.toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.');
+    const name = (r) => [t(r.F === 'median' ? 'ob_F_median' : 'ob_F_sample'), t('ob_cex', { c: pct(r.cex, 0) })].concat(r.extra ? [t('ob_x_' + r.extra)] : []).join(', ');
+    const by = Object.fromEntries(rows.map(r => [r.setting, r]));
+    const g2 = rows.map(r => r.G2), mn = (k) => Math.min(...g2.map(x => x[k])), mx = (k) => Math.max(...g2.map(x => x[k]));
+    const ratio = rows.map(r => r.G2.found / r.ten_k.found);
+    const worst = rows.reduce((a, r) => r.G2.precision < a.G2.precision ? r : a);
+    const dg = ob.diag_world12 || [], dgv = (w, k) => (dg.find(d => d.worlds.startsWith(w) && d.setting === k) || {}).precision;
+    $('#res-optb').innerHTML = `<table class="t"><caption><span class="tag">${t('tbl')} 2</span>${esc(t('ob_cap', { w: ob.worlds }))}</caption><thead>` +
+      `<tr><th scope="col" rowspan="2">${esc(t('ob_world'))}</th><th scope="colgroup" colspan="2">${esc(t('preset_10k'))}</th><th scope="colgroup" colspan="4">G2</th><th scope="colgroup" colspan="2">G3</th></tr>` +
+      `<tr><th scope="col" class="n">${esc(t('col_prec'))}</th><th scope="col" class="n">${esc(t('ob_found'))}</th><th scope="col" class="n">${esc(t('col_prec'))}</th><th scope="col" class="n">${esc(t('ob_prec_c'))}</th><th scope="col" class="n">${esc(t('ob_found'))}</th><th scope="col" class="n">${esc(t('ob_fa'))}</th><th scope="col" class="n">${esc(t('col_prec'))}</th><th scope="col" class="n">${esc(t('ob_found'))}</th></tr></thead><tbody>` +
+      rows.map(r => `<tr${r.setting === worst.setting ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${r.setting}. ${esc(name(r))}</th><td class="n">${pct(r.ten_k.precision)}</td><td class="n">${pct(r.ten_k.found)}</td><td class="n">${pct(r.G2.precision)}</td><td class="n">${pct(r.G2.precision_c)}</td><td class="n">${pct(r.G2.found)}</td><td class="n">${fa(r.G2.fp_per_fraud)}</td><td class="n">${pct(r.G3.precision)}</td><td class="n">${pct(r.G3.found)}</td></tr>`).join('') + '</tbody></table>';
+    $('#res-optb-read').textContent = t('ob_read', {
+      g3p: pct(Math.min(...rows.map(r => r.G3.precision)), 0), g3a: pct(Math.min(...rows.map(r => r.G3.found)), 0), g3b: pct(Math.max(...rows.map(r => r.G3.found)), 0),
+      ra: Math.min(...ratio).toFixed(1).replace('.', S.lang === 'fr' ? ',' : '.'), rb: Math.max(...ratio).toFixed(1).replace('.', S.lang === 'fr' ? ',' : '.'),
+      fa: pct(mn('found'), 0), fb: pct(mx('found'), 0), pa: pct(mn('precision'), 0), pb: pct(mx('precision'), 0),
+      faa: fa(mn('fp_per_fraud')), fab: fa(mx('fp_per_fraud')), pc: pct(mn('precision_c'), 0),
+      nlo: rows.filter(r => r.G2.prec_c_lo5 > 0.9).length, n: rows.length });
+    const half = (F) => rows.filter(r => r.F === F).map(r => 50 * (r.G2.prec_hi - r.G2.prec_lo)), dec = (x) => x.toFixed(1).replace('.', S.lang === 'fr' ? ',' : '.');
+    $('#res-optb-noise').textContent = t('ob_noise', { ra: dec(Math.min(...half('sample'))), rb: dec(Math.max(...half('sample'))), ma: dec(Math.min(...half('median'))), mb: dec(Math.max(...half('median'))) });
+    $('#res-optb-worst').textContent = t('ob_worst', { w: worst.setting, p: pct(worst.G2.precision), lo: pct(worst.G2.prec_lo5), k: pct(worst.ten_k.precision), b: by[worst.F === 'sample' ? 4 : 1].setting,
+      pb: pct(by[worst.F === 'sample' ? 4 : 1].G2.precision), fw: fa(worst.G2.fp_per_fraud), fb: fa(by[worst.F === 'sample' ? 4 : 1].G2.fp_per_fraud),
+      gw: pct(worst.G2.found), gb: pct(by[worst.F === 'sample' ? 4 : 1].G2.found),
+      dw: (dg.find(d => d.worlds.startsWith('new')) || {}).worlds.replace(/^new /, ''), d5: pct(dgv('new', '5')), d12: pct(dgv('new', '12')) });
+    if (sm) $('#res-sample').textContent = t('res_sample', { a: pct(sm.ten_k.recall), pa: pct(sm.ten_k.precision), b: pct(sm.rev5_V3.recall), pb: pct(sm.rev5_V3.precision),
+      c: pct(sm.rev5_V3_G3.recall), pc: pct(sm.rev5_V3_G3.precision) });
   }
 
   /* ---------------------------------------------------------------- what the simulator assumes, and how far the results hold (data/stress.json) */
@@ -556,12 +576,15 @@ const APP = (() => {
     const st = S.stress, m = S.thesis.main_E; if (!st) return;
     const W = '0.5';                                   // the main world: half of the fraud money reaches our exchanges
     const base = st.base[W], meta = st.meta, cd = st.common_destination;
-    $('#res-intro').textContent = t('res_intro', { n: num(meta.involved), out: num(meta.involved_all - meta.involved),
-      all: pct(cd.found_total / meta.involved_all), lead: pct(m.rev5_V3.recall) });
+    const ob = S.thesis.option_b;
+    $('#res-intro').textContent = t('res_intro', { n: num(ob.settings[0].n_pos), w: ob.worlds });
+    $('#hold-p').textContent = t('hold_p', { w: meta.world_ids });
     const ir = st.innocents.by_role;
     const items = [[t('assume_1_t'), t('assume_1_d', { mx: pct(Math.max(ir.FRAMED.max, ir.BAIT.max), 0), v: ir.VICTIM.ge20, u: pct(st.innocents.under_10pct, 0), ll: ir.LANDLORD.ge20, p2p: ir.P2P.ge20, n: num(st.innocents.accounts),
       llf: ir.LANDLORD.ge20_flagged, p2pf: ir.P2P.ge20_flagged })], [t('assume_2_t'), t('assume_2_d')], [t('assume_3_t'), t('assume_3_d')], [t('assume_4_t'), t('assume_4_d')]];
     if (st.size_p2p) items.push([t('assume_5_t'), t('assume_5_d', { sim: eur(st.size_p2p.sim_median_eur), real: eur(st.size_p2p.real_median_eur), n: num(st.size_p2p.real_seeds) })]);
+    const obs = Object.fromEntries(S.thesis.option_b.settings.map(r => [r.setting, r]));
+    items.push([t('assume_6_t'), t('assume_6_d', { lo: pct(obs[9].G2.precision), hi: pct(obs[10].G2.precision), mid: pct(obs[4].G2.precision) })]);
     $('#assume-list').innerHTML = items.map(([a, b]) => `<li><b>${esc(a)}</b> ${esc(b)}</li>`).join('');
     const cap = (n, txt) => `<caption><span class="tag">${t('tbl')} ${n}</span>${esc(txt)}</caption>`;
     const cell = (x) => `<td class="n">${x === undefined || x === null ? '–' : pct(x)}</td>`;
@@ -569,28 +592,28 @@ const APP = (() => {
     // table 2: one innocent account receives a large share
     const one = (kind, p, s, cex = 0.5) => st.one_account.find(r => r.cex === cex && r.kind === kind && r.p === p && r.s === s) || {};
     const ps = [0.05, 0.1, 0.3], shares = [0.1, 0.2, 0.3], pTen = 0.1;
-    $('#hold-t1').innerHTML = `<table class="t">${cap(2, t('hold_t1'))}<thead><tr><th scope="col" rowspan="2">${esc(t('hold_share'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_ordinary'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_seller'))}</th><th scope="col" class="n">${esc(t('preset_10k'))}</th></tr>` +
+    $('#hold-t1').innerHTML = `<table class="t">${cap(3, t('hold_t1'))}<thead><tr><th scope="col" rowspan="2">${esc(t('hold_share'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_ordinary'))}</th><th scope="colgroup" colspan="${ps.length}">${esc(t('hold_seller'))}</th><th scope="col" class="n">${esc(t('preset_10k'))}</th></tr>` +
       `<tr>${['ordinary', 'seller'].map(() => ps.map(p => `<th scope="col" class="n">${of(p)}</th>`).join('')).join('')}<th scope="col" class="n">${of(pTen)}</th></tr></thead><tbody>` +
       `<tr><th scope="row">${esc(t('hold_none'))}</th>${['ordinary', 'seller'].map(() => ps.map(() => cell(base.g2.precision)).join('')).join('')}${cell(base.ten_k.precision)}</tr>` +
       shares.map(s => `<tr><th scope="row">${pct(s, 0)}</th>${['ordinary', 'seller'].map(k => ps.map(p => cell(one(k, p, s).g2)).join('')).join('')}${cell(one('ordinary', pTen, s).ten_k)}</tr>`).join('') + '</tbody></table>';
     // table 3: the same innocent person at two exchanges
     const S2 = 0.2, two = (kind, p, cex = 0.5) => st.two_exchanges.find(r => r.cex === cex && r.kind === kind && r.p === p && r.s === S2) || {};
     const kinds = [['ordinary', 'hold_ordinary'], ['seller', 'hold_seller']];
-    $('#hold-t2').innerHTML = `<table class="t">${cap(3, t('hold_t2', { s: pct(S2, 0) }))}<thead><tr><th scope="col">${esc(t('hold_innocent'))}</th><th scope="col" class="n">${esc(t('hold_frauds'))}</th><th scope="col" class="n">${esc(t('hold_g2'))}</th><th scope="col" class="n">G3</th><th scope="col" class="n">${esc(t('hold_g3_nosame'))}</th></tr></thead><tbody>` +
+    $('#hold-t2').innerHTML = `<table class="t">${cap(4, t('hold_t2', { s: pct(S2, 0) }))}<thead><tr><th scope="col">${esc(t('hold_innocent'))}</th><th scope="col" class="n">${esc(t('hold_frauds'))}</th><th scope="col" class="n">${esc(t('hold_g2'))}</th><th scope="col" class="n">G3</th><th scope="col" class="n">${esc(t('hold_g3_nosame'))}</th></tr></thead><tbody>` +
       `<tr><th scope="row">${esc(t('hold_none2'))}</th><td class="n">–</td>${cell(base.g2.precision)}${cell(base.g3.precision)}${cell(base.g3_no_same.precision)}</tr>` +
       kinds.map(([k, lab]) => [0.05, 0.1].map(p => { const r = two(k, p); return `<tr><th scope="row">${esc(t(lab))}</th><td class="n">${pct(p, 0)}</td>${cell(r.g2)}${cell(r.g3)}${cell(r.g3_no_same)}</tr>`; }).join('')).join('') + '</tbody></table>';
     $('#hold-read').textContent = t('hold_read', { x: pct(one('seller', 0.05, 0.2).g2), y: pct(one('seller', 0.05, 0.2, 0.3).g2), z: pct(one('seller', 0.1, 0.2).g2), w: pct(one('ordinary', 0.1, 0.2).g2),
       g3: pct(base.g3.precision, 0), g3s: pct(two('seller', 0.05).g3), g3n: pct(base.g3_no_same.precision, 0), fn: pct(base.g3_no_same.found), f3: pct(base.g3.found) });
     $('#hold-real').textContent = t('hold_real', { n: num(st.real.seeds), a: pct(st.real.one_account_ge20), b: pct(st.real.two_exchanges_ge10) });
     // table 4: the shared destination
-    $('#hold-t3').innerHTML = `<table class="t">${cap(4, t('hold_t3'))}<thead><tr><th scope="col">${esc(t('hold_dest_col'))}</th><th scope="col" class="n">${esc(t('hold_prec'))}</th><th scope="col" class="n">${esc(t('hold_found'))}</th><th scope="col" class="n">${esc(t('hold_found_g3'))}</th></tr></thead><tbody>` +
+    $('#hold-t3').innerHTML = `<table class="t">${cap(5, t('hold_t3'))}<thead><tr><th scope="col">${esc(t('hold_dest_col'))}</th><th scope="col" class="n">${esc(t('hold_prec'))}</th><th scope="col" class="n">${esc(t('hold_found'))}</th><th scope="col" class="n">${esc(t('hold_found_g3'))}</th></tr></thead><tbody>` +
       cd.rows.map(r => `<tr${r.share === 0.5 ? ' style="font-weight:700"' : ''}><th scope="row" style="font-weight:inherit">${pct(r.share, 0)}${r.share === 0.5 ? ` (${esc(t('hold_ours'))})` : ''}</th>${cell(r.g2)}${cell(r.found)}${cell(r.found_g3)}</tr>`).join('') + '</tbody></table>';
     $('#hold-dest').textContent = t('hold_dest_p', { only: num(cd.found_only_by_it), tot: num(cd.found_total) });
     // table 5: fraud size and peer-to-peer resale, new worlds (experiments21.py, preregistration_p2p.md)
     const sz = st.size_p2p; if (!sz) return;
     const R = Object.fromEntries(sz.rows.map(r => [r.id, r])), fa = (x) => x.toFixed(2).replace('.', S.lang === 'fr' ? ',' : '.');
     const label = (id) => id.startsWith('p2p_') ? t('hold_c_p2p', { f: pct(+id.slice(4) / 100, 0) }) : id.startsWith('two_') ? t('hold_c_two', { f: pct(+id.slice(4) / 100, 0) }) : t('hold_c_' + id);
-    $('#hold-t4').innerHTML = `<table class="t">${cap(5, t('hold_t4', { w: sz.worlds }))}<thead><tr><th scope="col">${esc(t('hold_case'))}</th><th scope="col" class="n">${esc(t('hold_g2p'))}</th><th scope="col" class="n">${esc(t('hold_fa'))}</th><th scope="col" class="n">${esc(t('hold_g2f'))}</th><th scope="col" class="n">${esc(t('hold_g3p'))}</th></tr></thead><tbody>` +
+    $('#hold-t4').innerHTML = `<table class="t">${cap(6, t('hold_t4', { w: sz.worlds }))}<thead><tr><th scope="col">${esc(t('hold_case'))}</th><th scope="col" class="n">${esc(t('hold_g2p'))}</th><th scope="col" class="n">${esc(t('hold_fa'))}</th><th scope="col" class="n">${esc(t('hold_g2f'))}</th><th scope="col" class="n">${esc(t('hold_g3p'))}</th></tr></thead><tbody>` +
       sz.rows.map(r => `<tr><th scope="row" style="font-weight:500">${esc(label(r.id))}</th><td class="n">${pct(r.g2)} <span class="note">(${pct(r.g2_lo)}–${pct(r.g2_hi)})</span></td><td class="n">${fa(r.g2_fa)}</td>${cell(r.g2_found)}${cell(r.g3)}</tr>`).join('') + '</tbody></table>';
     $('#hold-size').textContent = t('hold_size_read', { fa: fa(R.sample_fixed.g2_fa), fb: fa(R.sample_prop.g2_fa), fa0: fa(R.reference.g2_fa), pA: pct(R.sample_fixed.g2), pB: pct(R.sample_prop.g2),
       f10: fa(R.p2p_10.g2_fa), f25: fa(R.p2p_25.g2_fa), f50: fa(R.p2p_50.g2_fa) });

@@ -1,0 +1,16 @@
+blacklist,date,visible,involved_reached
+old,tau1,0.1514,0.657
+old,tau7,0.2418,0.9845
+old,tau30,0.3122,1.0
+old,tau90,0.4431,1.0
+old,end,1.0,1.0
+alert,tau1,0.141,0.3674
+alert,tau7,0.1888,0.5247
+alert,tau30,0.3064,0.787
+alert,tau90,0.4659,0.9147
+alert,end,1.0,1.0
+freeze,tau1,0.3427,0.8757
+freeze,tau7,0.3988,0.995
+freeze,tau30,0.4555,0.9971
+freeze,tau90,0.577,0.9971
+freeze,end,1.0,1.0

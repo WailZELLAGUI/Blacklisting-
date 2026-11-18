@@ -15,6 +15,8 @@ Usage: python3 experiments19.py PY_DIR OUT_DIR [n_worlds] [procs]
 import sys, json, pickle, time, itertools
 PY_DIR, OUT_DIR = sys.argv[1], sys.argv[2]
 N_WORLDS = int(sys.argv[3]) if len(sys.argv) > 3 else 20
+import os
+W0 = int(os.environ.get("FP1_W0", "15000"))   # first world; 20000 for the reruns on the corrected generator (17 Nov 2026)
 PROCS = int(sys.argv[4]) if len(sys.argv) > 4 else 4
 sys.path.insert(0, PY_DIR)
 import numpy as np, pandas as pd
@@ -25,7 +27,7 @@ from evaltime import candidate_table_at
 from sim import generate_world, DAY, POSITIVE_ROLES
 
 OFFSET = 90 * DAY
-BASE = TEST3_CFG.with_(blacklist_model="alert", horizon_days=365.0)
+BASE = TEST3_CFG.with_(blacklist_model="alert", horizon_days=365.0, streams=__import__("os").environ.get("FP1_STREAMS", "shared"))   # 18 Nov 2026: "paired" for the reruns
 RULES = json.load(open(f"{PY_DIR}/rules.json"))
 R5 = dict(RULES["rev5"]["V3"]); R5["fan_k"] = 0
 RULE = D3.Rule3(**R5)
@@ -129,7 +131,7 @@ def summarise(raw):
 if __name__ == "__main__":
     from multiprocessing import Pool
     t = time.time()
-    seeds = list(range(15000, 15000 + N_WORLDS))
+    seeds = list(range(W0, W0 + N_WORLDS))
     with Pool(PROCS) as pool:
         res = pool.map(one_world, seeds, chunksize=1)
     raw = pd.DataFrame(list(itertools.chain.from_iterable(res)))

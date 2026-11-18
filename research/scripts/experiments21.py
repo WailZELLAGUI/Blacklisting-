@@ -5,6 +5,8 @@ Usage: python3 experiments21.py PY_DIR OUT_DIR [n_worlds] [procs]   (PY_DIR must
 import sys, json, time, itertools
 PY_DIR, OUT_DIR = sys.argv[1], sys.argv[2]
 N_WORLDS = int(sys.argv[3]) if len(sys.argv) > 3 else 20
+import os
+W0 = int(os.environ.get("FP1_W0", "16000"))   # first world; 20000 for the reruns on the corrected generator (17 Nov 2026)
 PROCS = int(sys.argv[4]) if len(sys.argv) > 4 else 2
 sys.path.insert(0, PY_DIR)
 import numpy as np, pandas as pd
@@ -15,9 +17,9 @@ from evaltime import candidate_table_at
 from sim import generate_world, DAY, POSITIVE_ROLES, NEGATIVE_ROLES
 
 OFFSET = 90 * DAY
-BASE = TEST3_CFG.with_(blacklist_model="alert", horizon_days=365.0)
+BASE = TEST3_CFG.with_(blacklist_model="alert", horizon_days=365.0, streams=__import__("os").environ.get("FP1_STREAMS", "shared"))   # 18 Nov 2026: "paired" for the reruns
 R5 = D3.Rule3(**{**json.load(open(f"{PY_DIR}/rules.json"))["rev5"]["V3"], "fan_k": 0})
-WORLDS = range(16000, 16000 + N_WORLDS)
+WORLDS = range(W0, W0 + N_WORLDS)
 
 
 def case(name, **kw):

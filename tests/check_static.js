@@ -37,7 +37,8 @@ const DYNAMIC = {
   preset_: ['10k', 'rev5', 'rev3'],            // t('preset_' + S.preset), t('preset_' + k.slice(0, 4))
   bl_: ['old', 'alert', 'freeze'],             // t('bl_' + settings.blacklist)
   eval_: ['1', '7', '30', '90', 'end'],        // t('eval_' + settings.eval_days)
-  hold_c_: ['reference', 'sample_fixed', 'sample_prop'],   // t('hold_c_' + id), Table 5 of the Results page
+  hold_c_: ['reference', 'sample_fixed', 'sample_prop'],   // t('hold_c_' + id), Table 6 of the Results page
+  ob_x_: ['p2p10', 'versionB', 'activity05', 'activity2', 'transfers30', 'hard'],   // t('ob_x_' + r.extra), Table 2 of the Results page
 };
 const used = new Set();
 for (const m of html.matchAll(/data-i18n="([^"]+)"/g)) used.add(m[1]);
@@ -78,7 +79,7 @@ for (const s of visible) {
 // 5. every value js/app.js reads in data/thesis.json and data/stress.json exists
 const thesis = JSON.parse(read('data/thesis.json')), stress = JSON.parse(read('data/stress.json'));
 const app = read('js/app.js');
-const at = (root, parts) => parts.reduce((o, k) => (o && typeof o === 'object' && !Array.isArray(o) ? o[k] : undefined), root);
+const at = (root, parts) => parts.reduce((o, k) => (o && typeof o === 'object' && (!Array.isArray(o) || /^\d+$/.test(k)) ? o[k] : undefined), root);   // arrays: numeric index only
 // 5a. chains written in full in the code, such as S.thesis.real.check_90d (they stop at the first list or number)
 for (const m of app.matchAll(/\bS\.(thesis|stress)((?:\.[A-Za-z_]\w*)+)/g)) {
   let o = m[1] === 'thesis' ? thesis : stress;
@@ -95,7 +96,9 @@ const need = (name, root, paths) => { for (const p of paths) {
 } };
 need('thesis', thesis, [
   'main_E.ten_k|rev5_V1|rev5_V3|rev3_V1|rev3_V3|rev5_V3_G3|rev3_V3_G3.precision|recall|value_recall|fp_per_fraud|prec_lo|prec_hi|rec_lo|rec_hi',
-  'main_E.ten_k_paper.precision', 'headline.days|accounts_reached', 'zone.size', 'zone.values.sigma|kappa|pi|delta',
+  'main_E.ten_k_paper.precision', 'headline.days|accounts_reached',
+  'main_E_sample.ten_k|rev5_V3|rev5_V3_G3.precision|recall', 'sweep_meta.n|worlds', 'option_b.worlds|settings|diag_world12',
+  'option_b.settings.0.n_pos', 'option_b.settings.4.ten_k|G2|G3.precision|found|fp_per_fraud|prec_lo|prec_hi|prec_lo5', 'option_b.settings.4.G2.precision_c|prec_c_lo5',
   'curve', 'sweep_speed', 'sweep_k', 'by_pattern_E',
   'by_role_E.own account (SELF)|mule|mule, without T7|facilitator|all involved.ten_k|rev5|rev3',
   'real.phishing_active|total_out_eur|deposit_addresses|fraud_eur_to_deposits|flows_share|hop1_roles|by_exchange|grades|rule10k|g3_examples',
@@ -105,7 +108,7 @@ need('thesis', thesis, [
   'real.timing.sim_reached.alert|freeze|old',
 ]);
 need('stress', stress, [
-  'meta.involved|involved_all', 'base.0_dot_5.g2|g3|g3_no_same|ten_k.precision', 'base.0_dot_5.g3|g3_no_same.found',
+  'meta.involved|involved_all|world_ids', 'base.0_dot_5.g2|g3|g3_no_same|ten_k.precision', 'base.0_dot_5.g3|g3_no_same.found',
   'common_destination.rows|found_total|found_only_by_it', 'innocents.accounts|under_10pct', 'innocents.by_role.LANDLORD|P2P.ge20|ge20_flagged',
   'real.seeds|one_account_ge20|two_exchanges_ge10',
 ]);

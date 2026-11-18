@@ -186,7 +186,6 @@
         <summary><span><span data-i18n="adv_h"></span><small id="adv-sub" data-i18n="adv_sub"></small></span></summary>
         <div class="foldbody">
           <p class="note warn" id="tune-off" hidden data-i18n="tune_off_10k"></p>
-          <div class="stable" id="stable-box"></div>
           <label class="field"><span data-i18n="sl_g2share"></span> <b class="v" id="v-sigma"></b><input type="range" id="sl-sigma" min="0.01" max="0.5" step="0.01"></label>
           <label class="field"><span data-i18n="sl_kappa"></span> <b class="v" id="v-kappa"></b><input type="range" id="sl-kappa" min="0.05" max="0.95" step="0.05"></label>
           <label class="field"><span data-i18n="sl_pi"></span> <b class="v" id="v-pi"></b><input type="range" id="sl-pi" min="0.1" max="1" step="0.05"></label>
@@ -232,8 +231,13 @@
   <div class="container" style="padding-bottom:var(--section-gap-s)">
     <header class="vhead"><h1 id="h-res" data-i18n="res_h"></h1><p class="lead" id="res-intro"></p></header>
     <div class="tablewrap" id="res-table"></div>
+    <p class="note" id="res-sample"></p>
     <p class="note" id="res-base-note"></p>
-    <p class="note" data-i18n="res_rev3_note"></p>
+    <div class="tablewrap" id="res-optb"></div>
+    <p class="prose" id="res-optb-read"></p>
+    <p class="prose note" id="res-optb-worst"></p>
+    <p class="prose note" id="res-optb-noise"></p>
+    <p class="note" id="res-rev3-note"></p>
     <div class="figs">
       <figure class="fig"><figcaption><b id="cap-main"></b><span data-i18n="res_main_p"></span></figcaption><div class="chart"><canvas id="ch-main" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig"><figcaption><b id="cap-time"></b><span data-i18n="res_time_p"></span></figcaption><div class="chart"><canvas id="ch-time" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
@@ -242,6 +246,7 @@
       <figure class="fig"><figcaption><b id="cap-speed"></b><span data-i18n="res_speed_p"></span></figcaption><div class="chart"><canvas id="ch-speed" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
       <figure class="fig"><figcaption><b id="cap-k"></b><span data-i18n="res_k_p"></span></figcaption><div class="chart"><canvas id="ch-k" role="img" aria-label="Chart"></canvas><div class="sr-only"></div></div></figure>
     </div>
+    <p class="note" id="res-sweep-note"></p>
     <section class="limits" aria-labelledby="h-assume">
       <h2 id="h-assume" data-i18n="assume_h"></h2>
       <p data-i18n="assume_p"></p>
@@ -250,7 +255,7 @@
     </section>
     <section class="hold" aria-labelledby="h-hold">
       <h2 class="subhead" id="h-hold" data-i18n="hold_h"></h2>
-      <p class="prose" data-i18n="hold_p"></p>
+      <p class="prose" id="hold-p"></p>
       <div class="tablewrap" id="hold-t1"></div>
       <div class="tablewrap" id="hold-t2"></div>
       <p class="prose" id="hold-read"></p>

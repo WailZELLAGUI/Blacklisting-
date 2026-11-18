@@ -1,0 +1,4 @@
+model,pairs,median_arrival_minus_tau_d,arrived_by_tau,by_tau7,by_tau30,traced_sent_after_tau,traced_sent_before_tau
+old,2391,-0.4,0.556,0.985,1.0,0.554,0.446
+alert,2474,6.4,0.346,0.525,0.787,0.696,0.304
+freeze,2422,-15.7,0.825,0.995,0.997,0.292,0.708

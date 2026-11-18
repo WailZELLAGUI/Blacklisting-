@@ -1,0 +1,6 @@
+blacklist,date,visible,involved_reached
+alert,tau1,0.1398,0.3592
+alert,tau7,0.1863,0.5223
+alert,tau30,0.2997,0.7764
+alert,tau90,0.4613,0.9242
+alert,end,1.0,1.0

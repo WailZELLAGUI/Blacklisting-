@@ -1,47 +1,47 @@
 case,fpG2_SERVICE,fpG2_P2P,fpG2_VICTIM,fpG2_DUST,fpG2_FRAMED,fpG2_BAIT,fpG2_LANDLORD
-reference,0,12,25,0,22,0,2
-grid F=lognormal v=0.0 buyers=2-10 fixed,0,0,35,0,28,0,5
-grid F=lognormal v=0.05 buyers=1 fixed,0,15,35,0,28,0,5
-grid F=lognormal v=0.05 buyers=2-10 fixed,0,7,35,0,28,0,5
-grid F=lognormal v=0.1 buyers=1 fixed,0,47,35,0,28,0,5
-grid F=lognormal v=0.1 buyers=2-10 fixed,0,17,35,0,29,0,5
-grid F=lognormal v=0.2 buyers=1 fixed,0,177,35,0,28,0,5
-grid F=lognormal v=0.2 buyers=2-10 fixed,0,56,35,0,29,0,5
-grid F=lognormal v=0.3 buyers=1 fixed,0,270,35,0,28,0,5
-grid F=lognormal v=0.3 buyers=2-10 fixed,0,95,35,0,29,0,5
-grid F=lognormal v=0.0 buyers=2-10 fraud,0,0,35,0,28,3,6
-grid F=lognormal v=0.05 buyers=1 fraud,0,15,35,0,28,3,6
-grid F=lognormal v=0.05 buyers=2-10 fraud,0,7,35,0,28,3,6
-grid F=lognormal v=0.1 buyers=1 fraud,0,47,35,0,28,3,6
-grid F=lognormal v=0.1 buyers=2-10 fraud,0,17,35,0,29,3,6
-grid F=lognormal v=0.2 buyers=1 fraud,0,183,35,0,28,3,6
-grid F=lognormal v=0.2 buyers=2-10 fraud,0,56,35,0,29,3,6
-grid F=lognormal v=0.3 buyers=1 fraud,0,275,35,0,28,3,6
-grid F=lognormal v=0.3 buyers=2-10 fraud,0,95,35,0,29,3,6
-grid F=real v=0.0 buyers=2-10 fixed,10,0,9,0,13,26,13
-grid F=real v=0.05 buyers=1 fixed,10,15,9,0,13,26,13
-grid F=real v=0.05 buyers=2-10 fixed,10,7,9,0,13,26,13
-grid F=real v=0.1 buyers=1 fixed,10,23,9,0,13,26,13
-grid F=real v=0.1 buyers=2-10 fixed,10,43,9,0,13,26,13
-grid F=real v=0.2 buyers=1 fixed,10,69,9,0,13,26,13
-grid F=real v=0.2 buyers=2-10 fixed,10,102,9,0,13,26,13
-grid F=real v=0.3 buyers=1 fixed,10,110,9,0,13,26,13
-grid F=real v=0.3 buyers=2-10 fixed,10,126,9,0,13,26,13
-grid F=real v=0.0 buyers=2-10 fraud,10,0,10,0,13,4,13
-grid F=real v=0.05 buyers=1 fraud,10,15,10,0,13,4,13
-grid F=real v=0.05 buyers=2-10 fraud,10,7,10,0,13,4,13
-grid F=real v=0.1 buyers=1 fraud,10,23,10,0,13,4,13
-grid F=real v=0.1 buyers=2-10 fraud,10,43,10,0,13,4,13
-grid F=real v=0.2 buyers=1 fraud,10,71,10,0,13,4,13
-grid F=real v=0.2 buyers=2-10 fraud,10,102,10,0,13,4,13
-grid F=real v=0.3 buyers=1 fraud,10,120,10,0,13,4,13
-grid F=real v=0.3 buyers=2-10 fraud,10,126,10,0,13,4,13
-cex=0.3,10,43,9,0,13,26,13
-cex=0.86,10,43,9,0,13,26,13
-p2p frequency=0.1,10,12,9,0,13,26,13
-p2p frequency=0.25,10,34,9,0,13,26,13
-p2p frequency=1.0,10,145,9,0,13,26,13
-fast resale=0.0,10,60,9,0,13,26,13
-fast resale=1.0,10,89,9,0,13,26,13
-two platforms=0.05,10,74,9,0,13,26,13
-two platforms=0.1,10,110,9,0,13,26,13
+reference,3,2,15,0,20,1,3
+grid F=lognormal v=0.0 buyers=2-10 fixed,3,0,15,0,29,0,2
+grid F=lognormal v=0.05 buyers=1 fixed,3,15,15,0,29,0,2
+grid F=lognormal v=0.05 buyers=2-10 fixed,3,10,15,0,29,0,3
+grid F=lognormal v=0.1 buyers=1 fixed,3,38,15,0,29,0,2
+grid F=lognormal v=0.1 buyers=2-10 fixed,3,22,15,0,29,0,3
+grid F=lognormal v=0.2 buyers=1 fixed,3,111,15,0,29,0,2
+grid F=lognormal v=0.2 buyers=2-10 fixed,3,74,15,0,29,0,3
+grid F=lognormal v=0.3 buyers=1 fixed,3,230,15,0,29,0,2
+grid F=lognormal v=0.3 buyers=2-10 fixed,3,117,15,0,29,0,3
+grid F=lognormal v=0.0 buyers=2-10 fraud,3,0,15,0,28,4,3
+grid F=lognormal v=0.05 buyers=1 fraud,3,14,15,0,28,4,3
+grid F=lognormal v=0.05 buyers=2-10 fraud,3,10,15,0,28,4,4
+grid F=lognormal v=0.1 buyers=1 fraud,3,34,15,0,28,4,3
+grid F=lognormal v=0.1 buyers=2-10 fraud,3,22,15,0,28,4,4
+grid F=lognormal v=0.2 buyers=1 fraud,3,109,15,0,28,4,3
+grid F=lognormal v=0.2 buyers=2-10 fraud,3,72,15,0,28,4,4
+grid F=lognormal v=0.3 buyers=1 fraud,3,241,15,0,28,4,3
+grid F=lognormal v=0.3 buyers=2-10 fraud,3,110,15,0,28,4,4
+grid F=real v=0.0 buyers=2-10 fixed,6,0,13,0,9,9,10
+grid F=real v=0.05 buyers=1 fixed,6,12,13,0,9,9,10
+grid F=real v=0.05 buyers=2-10 fixed,6,11,13,0,9,9,10
+grid F=real v=0.1 buyers=1 fixed,6,24,13,0,9,9,10
+grid F=real v=0.1 buyers=2-10 fixed,6,38,13,0,9,9,10
+grid F=real v=0.2 buyers=1 fixed,6,48,13,0,9,9,10
+grid F=real v=0.2 buyers=2-10 fixed,6,64,13,0,9,9,10
+grid F=real v=0.3 buyers=1 fixed,6,91,13,0,9,9,10
+grid F=real v=0.3 buyers=2-10 fixed,6,78,13,0,9,9,10
+grid F=real v=0.0 buyers=2-10 fraud,6,0,13,0,9,0,13
+grid F=real v=0.05 buyers=1 fraud,6,12,13,0,9,0,13
+grid F=real v=0.05 buyers=2-10 fraud,6,10,13,0,9,0,13
+grid F=real v=0.1 buyers=1 fraud,6,23,13,0,9,0,13
+grid F=real v=0.1 buyers=2-10 fraud,6,34,13,0,9,0,13
+grid F=real v=0.2 buyers=1 fraud,6,50,13,0,9,0,13
+grid F=real v=0.2 buyers=2-10 fraud,6,62,13,0,9,0,13
+grid F=real v=0.3 buyers=1 fraud,6,111,13,0,9,0,13
+grid F=real v=0.3 buyers=2-10 fraud,6,76,13,0,9,0,13
+cex=0.3,6,38,13,0,9,9,10
+cex=0.86,6,38,13,0,9,9,10
+p2p frequency=0.1,6,20,13,0,9,9,10
+p2p frequency=0.25,6,33,13,0,9,9,10
+p2p frequency=1.0,6,114,13,0,9,9,10
+fast resale=0.0,6,50,13,0,9,9,10
+fast resale=1.0,6,70,13,0,9,9,10
+two platforms=0.05,6,62,13,0,9,9,10
+two platforms=0.1,6,73,13,0,9,9,10
