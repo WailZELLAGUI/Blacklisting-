@@ -38,6 +38,12 @@ def test_stress_claims():
     for r in st["one_account"] + st["two_exchanges"]:
         if r["p"] <= 0.1:
             assert r["g2"] > r["ten_k"], r
+    # Table 6 note: the sample rows have no basic P2P buyers, world 4 of Table 2 has them; counted as cases to check,
+    # world 4 comes close to the sample row
+    ob = json.load(open(os.path.join(ROOT, "data", "thesis.json"), encoding="utf-8"))["option_b"]
+    w4 = [r for r in ob["settings"] if r["setting"] == 4][0]["G2"]
+    sf = [r for r in st["size_p2p"]["rows"] if r["id"] == "sample_fixed"][0]["g2"]
+    assert w4["precision"] < sf and abs(w4["precision_c"] - sf) < abs(w4["precision"] - sf)
 
 
 if __name__ == "__main__":

@@ -615,6 +615,8 @@ const APP = (() => {
     const label = (id) => id.startsWith('p2p_') ? t('hold_c_p2p', { f: pct(+id.slice(4) / 100, 0) }) : id.startsWith('two_') ? t('hold_c_two', { f: pct(+id.slice(4) / 100, 0) }) : t('hold_c_' + id);
     $('#hold-t4').innerHTML = `<table class="t">${cap(6, t('hold_t4', { w: sz.worlds }))}<thead><tr><th scope="col">${esc(t('hold_case'))}</th><th scope="col" class="n">${esc(t('hold_g2p'))}</th><th scope="col" class="n">${esc(t('hold_fa'))}</th><th scope="col" class="n">${esc(t('hold_g2f'))}</th><th scope="col" class="n">${esc(t('hold_g3p'))}</th></tr></thead><tbody>` +
       sz.rows.map(r => `<tr><th scope="row" style="font-weight:500">${esc(label(r.id))}</th><td class="n">${pct(r.g2)} <span class="note">(${pct(r.g2_lo)}–${pct(r.g2_hi)})</span></td><td class="n">${fa(r.g2_fa)}</td>${cell(r.g2_found)}${cell(r.g3)}</tr>`).join('') + '</tbody></table>';
+    const w4 = S.thesis.option_b && S.thesis.option_b.settings.find(r => r.setting === 4);
+    if (w4) $('#hold-size-note').textContent = t('hold_size_note', { d: pct(R.sample_fixed.g2), w: pct(w4.G2.precision), wc: pct(w4.G2.precision_c) });
     $('#hold-size').textContent = t('hold_size_read', { fa: fa(R.sample_fixed.g2_fa), fb: fa(R.sample_prop.g2_fa), fa0: fa(R.reference.g2_fa), pA: pct(R.sample_fixed.g2), pB: pct(R.sample_prop.g2),
       f10: fa(R.p2p_10.g2_fa), f25: fa(R.p2p_25.g2_fa), f50: fa(R.p2p_50.g2_fa) });
     $('#hold-g3').textContent = t('hold_g3_read', { g3: pct(sz.g3_min_but_two10), n: sz.cases, g3x: pct(R.two_10.g3) });

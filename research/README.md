@@ -75,6 +75,13 @@ Since 18 Nov 2026 the breaking points (Tables 3 to 6) are rerun with the correct
 43000-43019 (`FP1_W0=43000 FP1_STREAMS=paired`); `results/` holds them, and `results_v16nov/` the earlier ones
 (worlds 15000-15019 and 16000-16019, generator without the cap).
 
+## Real blacklisting dates (realdata/measure_tau.py)
+
+`measure_tau.py` measures, on our 551 ScamSniffer phishing seeds, the delay from first inflow to listing (median 6.1
+days) and the share of the euros these seeds send that leaves after the listing date (0.662). It reads the BigQuery
+extracts of the research folder (`realdata/bq/`), which are not in this repository; it is kept here as the source of
+those two numbers.
+
 ## Worlds already used
 
 - 14000-14019: calibration (hard settings); 15000-15019: test and every stress test until 16 Nov; 16000-16019: the
